@@ -39,10 +39,10 @@ public class Main {
             time = Math.min(time, adapter.executeQuery4());
         }
         System.out.println("Query4 time = " + time);
-        time = adapter.insertFirstBulk();
-        System.out.println("First bulk insert time = " + time);
         
         // SECOND BULK
+        time = adapter.insertSecondBulk();
+        System.out.println("Second bulk insert time = " + time);
         time = Float.MAX_VALUE;
         for (i = 0; i < 5; i++) {
             time = Math.min(time, adapter.executeQuery1());

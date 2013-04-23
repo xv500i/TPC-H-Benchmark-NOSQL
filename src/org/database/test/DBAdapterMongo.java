@@ -4,10 +4,14 @@
  */
 package org.database.test;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,9 +47,9 @@ public class DBAdapterMongo implements IDBAdapter {
         }
      */
     
-    
     MongoClient mc;
     DB db;
+    DBCollection tpcCollection;
     
     @Override
     public void connect() {
@@ -57,7 +61,7 @@ public class DBAdapterMongo implements IDBAdapter {
         }
         db = mc.getDB("test");
         // Clean the DB
-        DBCollection tpcCollection = db.getCollection("tpc");
+        tpcCollection = db.getCollection("tpc");
         tpcCollection.drop();
     }
 
@@ -68,7 +72,24 @@ public class DBAdapterMongo implements IDBAdapter {
 
     @Override
     public float insertFirstBulk() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<DBObject> inserts = new ArrayList<>();
+        int i;
+        // 666 part
+        for (i = 0; i < 666; i++) {
+            BasicDBObject part = new BasicDBObject();
+            // TODO: attributes here
+            inserts.add(part);
+        }
+        
+        // 2666 partsupps
+        // 20000 lineitems
+        // 5000 orders
+        // 500 customers
+        // 33 supplier
+        // 25 nations
+        // 5 regions
+        tpcCollection.insert(inserts);
+        return 0.0f;
     }
 
     @Override
