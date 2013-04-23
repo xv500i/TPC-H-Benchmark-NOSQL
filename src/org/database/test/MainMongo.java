@@ -5,10 +5,10 @@
 package org.database.test;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.Set;
 import java.util.logging.Level;
