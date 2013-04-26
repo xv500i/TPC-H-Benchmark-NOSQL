@@ -50,9 +50,9 @@ public class GenerationUtility {
      * @param numberOfDigits the number of digits wanted
      * @return a double with numberOfDigits digits
      */
-    public static double generateNumber(int numberOfDigits) {
-        // example 4: 1000 + [0, 8999]
-        int digits = 10^(numberOfDigits-1) + r.nextInt(10^numberOfDigits - 10^(numberOfDigits-1));
-        return (float)digits;
+    public static double generateNumber(int numberOfDigits, int decimalDigits) {
+        // example 7,2: [0, 9999,99]
+        double digits = Math.pow(10d, numberOfDigits) * r.nextDouble() - 1.0d;
+        return digits / Math.pow(10.0d, decimalDigits);
     }
 }

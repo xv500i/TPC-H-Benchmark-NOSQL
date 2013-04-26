@@ -48,7 +48,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             PreparedStatement preStatement = connection.prepareStatement(sql);
             ResultSet result = preStatement.executeQuery();
             while(result.next()){
-                System.out.println("Current Date from Oracle : " +         result.getString("current_day"));
+                System.out.println("Current Date from Oracle : " + result.getString("current_day"));
             }
             System.out.println("done");
         } catch (SQLException ex) {
@@ -71,13 +71,19 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     protected void firstInsertOperation() {
         // 666 part
         try {
-            String insert = "insert into part values (?,?,?,?);";
+            String insert = "insert into part values (?,?,?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < 666; i++) {
-                ps.setString(1, "relol");
-                ps.setString(2, "relol");
-                ps.setString(3, "relol");
-                ps.setString(4, "relol");
+            for (int i = 1; i <= 666; i++) {
+                ps.setInt(1, i); // [1-666]
+                ps.setString(2, GenerationUtility.generateString(32));
+                ps.setString(3, GenerationUtility.generateString(32));
+                ps.setString(4, GenerationUtility.generateString(32));
+                ps.setString(5, GenerationUtility.generateString(32));
+                ps.setInt(6, GenerationUtility.generateInteger());
+                ps.setString(7, GenerationUtility.generateString(32));
+                ps.setDouble(8, GenerationUtility.generateNumber(6,2));
+                ps.setString(9, GenerationUtility.generateString(32));
+                ps.setString(10, GenerationUtility.generateString(32));
                 ps.executeQuery();
             }
             ps.close();
