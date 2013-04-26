@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  *
  * @author Alex
  */
-public class DBAdapterOracle implements IDBAdapter {
+public class DBAdapterOracle extends AbstractDBAdapter {
 
     private Connection connection;
     
@@ -68,8 +68,7 @@ public class DBAdapterOracle implements IDBAdapter {
     }
 
     @Override
-    public float insertFirstBulk() {
-        long initialTime = System.currentTimeMillis();
+    protected void firstInsertOperation() {
         // 666 part
         try {
             String insert = "insert into part values (?,?,?,?);";
@@ -92,32 +91,30 @@ public class DBAdapterOracle implements IDBAdapter {
         // 33 supplier
         // 25 nations
         // 5 regions
-        long endTime = System.currentTimeMillis();
-        return (float)(endTime-initialTime)/1000.0f;
     }
 
     @Override
-    public float insertSecondBulk() {
+    protected void secondInsertOperation() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery1() {
+    public float doQuery1() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery2() {
+    public float doQuery2() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery3() {
+    public float doQuery3() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery4() {
+    public float doQuery4() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     

@@ -13,7 +13,7 @@ public abstract class AbstractDBAdapter implements IDBAdapter {
     private enum Operations {INSERT_1, INSERT_2, QUERY_1, QUERY_2, QUERY_3, QUERY_4};
     
     // Strategy pattern
-    private float insertBulk(Operations op) {
+    private float doOperation(Operations op) {
         long initialTime = System.currentTimeMillis();
         switch (op) {
             case INSERT_1:
@@ -43,25 +43,33 @@ public abstract class AbstractDBAdapter implements IDBAdapter {
     
     @Override
     public float insertFirstBulk() {
-        return insertBulk(Operations.INSERT_1);
+        return doOperation(Operations.INSERT_1);
     }
     
     @Override
     public float insertSecondBulk() {
-        return insertBulk(Operations.INSERT_2);
+        return doOperation(Operations.INSERT_2);
     }  
     
     @Override
-    public abstract float executeQuery1();
+    public float executeQuery1() {
+        return doOperation(Operations.QUERY_1);
+    }
 
     @Override
-    public abstract float executeQuery2();    
+    public float executeQuery2() {
+        return doOperation(Operations.QUERY_2);
+    }    
 
     @Override
-    public abstract float executeQuery3();
+    public float executeQuery3() {
+        return doOperation(Operations.QUERY_3);
+    }
     
     @Override
-    public abstract float executeQuery4();
+    public float executeQuery4() {
+        return doOperation(Operations.QUERY_4);
+    }
 
     // subclass must implement
     @Override

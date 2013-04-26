@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  *
  * @author Alex
  */
-public class DBAdapterMongo implements IDBAdapter {
+public class DBAdapterMongo extends AbstractDBAdapter {
 
     
     /*
@@ -70,8 +70,9 @@ public class DBAdapterMongo implements IDBAdapter {
         mc.close();
     }
 
+
     @Override
-    public float insertFirstBulk() {
+    protected void firstInsertOperation() {
         List<DBObject> inserts = new ArrayList<>();
         int i;
         // 666 part
@@ -89,31 +90,30 @@ public class DBAdapterMongo implements IDBAdapter {
         // 25 nations
         // 5 regions
         tpcCollection.insert(inserts);
-        return 0.0f;
     }
 
     @Override
-    public float insertSecondBulk() {
+    protected void secondInsertOperation() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery1() {
+    public float doQuery1() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery2() {
+    public float doQuery2() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery3() {
+    public float doQuery3() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float executeQuery4() {
+    public float doQuery4() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
