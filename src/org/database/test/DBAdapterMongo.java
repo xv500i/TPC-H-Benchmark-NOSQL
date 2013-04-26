@@ -98,22 +98,22 @@ public class DBAdapterMongo extends AbstractDBAdapter {
     }
 
     @Override
-    public float doQuery1() {
+    public void doQuery1() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float doQuery2() {
+    public void doQuery2() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float doQuery3() {
+    public void doQuery3() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public float doQuery4() {
+    public void doQuery4() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     

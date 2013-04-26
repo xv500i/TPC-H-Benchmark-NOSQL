@@ -82,12 +82,12 @@ public abstract class AbstractDBAdapter implements IDBAdapter {
     
     protected abstract void secondInsertOperation();
     
-    public abstract float doQuery1();
+    public abstract void doQuery1();
 
-    public abstract float doQuery2(); 
+    public abstract void doQuery2(); 
 
-    public abstract float doQuery3();
+    public abstract void doQuery3();
 
-    public abstract float doQuery4();
+    public abstract void doQuery4();
 
 }
