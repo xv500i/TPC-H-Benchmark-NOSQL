@@ -10,6 +10,6 @@ package org.database.test;
  */
 public class Tests {
     public static void main(String[] args) {
-        System.out.println(GenerationUtility.generateNumber(4, 2));
+        System.out.println(GenerationUtility.generateDate());
     }
 }
