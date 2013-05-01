@@ -52,7 +52,7 @@ public class GenerationUtility {
      */
     public static double generateNumber(int numberOfDigits, int decimalDigits) {
         // example 7,2: [0, 9999,99]
-        double digits = Math.pow(10d, numberOfDigits) * r.nextDouble() - 1.0d;
+        double digits = (int)(Math.pow(10d, numberOfDigits) * r.nextDouble() - 1.0d);
         return digits / Math.pow(10.0d, decimalDigits);
     }
 }
