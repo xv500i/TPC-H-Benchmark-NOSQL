@@ -88,6 +88,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("a", GenerationUtility.generateString(32));
             part.append("b", (i%5)+1);
             part.append("c", GenerationUtility.generateString(32));
+            inserts.add(part);
         }
         db.getCollection("nation").insert(inserts);
         
@@ -104,6 +105,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("f", GenerationUtility.generateString(32));
             part.append("g", GenerationUtility.generateNumber(6,2));
             part.append("h", GenerationUtility.generateString(32));
+            inserts.add(part);
         }
         db.getCollection("part").insert(inserts);
         
@@ -118,6 +120,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("d", GenerationUtility.generateString(32));
             part.append("e", GenerationUtility.generateNumber(6, 2));
             part.append("f", GenerationUtility.generateString(52));
+            inserts.add(part);
         }
         db.getCollection("supplier").insert(inserts);
 
@@ -133,6 +136,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("e", GenerationUtility.generateNumber(6, 2));
             part.append("f", GenerationUtility.generateString(32));
             part.append("g", GenerationUtility.generateString(60));
+            inserts.add(part);
         }
         db.getCollection("customer").insert(inserts);
 
@@ -145,6 +149,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("c", GenerationUtility.generateInteger());
             part.append("d", GenerationUtility.generateNumber(6, 2));
             part.append("f", GenerationUtility.generateString(100));
+            inserts.add(part);
         }
         db.getCollection("partsupp").insert(inserts);
 
@@ -161,6 +166,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("f", GenerationUtility.generateString(32));
             part.append("g", GenerationUtility.generateInteger());
             part.append("h", GenerationUtility.generateString(40));
+            inserts.add(part);
         }
         db.getCollection("order").insert(inserts);
         
@@ -184,9 +190,10 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("m", GenerationUtility.generateString(32));
             part.append("n", GenerationUtility.generateString(32));
             part.append("o", GenerationUtility.generateString(32));
+            inserts.add(part);
         }
         db.getCollection("lineitem").insert(inserts);
-            
+        System.exit(0);    
     }
 
     @Override

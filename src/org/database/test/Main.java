@@ -11,7 +11,7 @@ package org.database.test;
 public class Main {
     
     public static void main (String args[]) {
-        oracleExecution();
+        mongoDBExecution();
     }
     
     public static void oracleExecution() {
