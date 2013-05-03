@@ -11,6 +11,20 @@ package org.database.test;
 public class Main {
     
     public static void main (String args[]) {
+        oracleExecution();
+    }
+    
+    public static void oracleExecution() {
+        IDBAdapter adapter = new DBAdapterOracle();
+        adapter.connect();
+        
+        // INSERT FIRST BULK
+        float time;
+        time = adapter.insertFirstBulk();
+        System.out.println("First bulk insert time = " + time);
+    }
+    
+    public static void mongoDBExecution() {
         IDBAdapter adapter = new DBAdapterMongo();
         adapter.connect();
         float time;

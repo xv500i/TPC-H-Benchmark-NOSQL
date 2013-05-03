@@ -1,15 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.database.test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+
+import java.sql.*;
+import java.math.*;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,35 +18,40 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     
     @Override
     public void connect() {
-        //URL of Oracle database server
-        // driver@machineName:port:SID
-        String url = "jdbc:oracle:thin:@localhost:1632:DEVROOT32";
+        // Database connection data
+        String prefix = "jdbc:oracle:thin";
+        String hostname = "oraclefib.fib.upc.es";
+        String port = "1521";
+        String SID = "ORABD";
+        String URL = prefix + ":@" + hostname + ":" + port + ":" + SID;
      
-        //properties for creating connection to Oracle database
+        // Properties (user and password) for creating connection to Oracle database
         Properties props = new Properties();
-        props.setProperty("user", "scott");
-        props.setProperty("password", "tiger");
-     
-        //creating connection to Oracle database using JDBC
+        props.setProperty("user", "natxo.raga");
+        props.setProperty("password", "DB040991");
+        
+        // Create CONNECTION to Oracle database using JDBC
         try {
-            connection = DriverManager.getConnection(url,props);
-        } catch (SQLException ex) {
+            connection = DriverManager.getConnection(URL, props);
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
         }
 
-        String sql ="select sysdate as current_day from dual";
+        String sql = "select sysdate as current_day from dual";
 
         //creating PreparedStatement object to execute query
         
         try {
             PreparedStatement preStatement = connection.prepareStatement(sql);
             ResultSet result = preStatement.executeQuery();
-            while(result.next()){
+            while (result.next()){
                 System.out.println("Current Date from Oracle : " + result.getString("current_day"));
             }
             System.out.println("done");
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
         }
