@@ -1,20 +1,32 @@
 
 package org.database.test;
 
-
 import java.sql.*;
 import java.math.*;
+import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 /**
- *
  * @author Alex Soms Batalla
  * @author Natxo Raga Llorens
  */
 public class DBAdapterOracle extends AbstractDBAdapter {
 
+    /* Tuples numbers */
+    private final static int NUM_REGIONS = 5;
+    private final static int NUM_NATIONS = 25;
+    private final static int NUM_PARTS = 666;
+    private final static int NUM_SUPPLIERS = 33;
+    private final static int NUM_CUSTOMERS = 500;
+    private final static int NUM_PARTSUPPS = 2666;
+    private final static int NUM_ORDERS = 5000;
+    private final static int NUM_LINEITEM = 20000;
+    
+    private static Random r = new Random(System.currentTimeMillis());
     private Connection connection;
     
     @Override
@@ -42,7 +54,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
 
         // Connection TEST
         try {
-            String sql = "select sysdate as current_day from dual";
+            String sql = "SELECT sysdate AS current_day FROM dual";
             PreparedStatement preStatement = connection.prepareStatement(sql);
             ResultSet result = preStatement.executeQuery();
             while (result.next()){
@@ -68,40 +80,50 @@ public class DBAdapterOracle extends AbstractDBAdapter {
 
     @Override
     protected void firstInsertOperation() {
-        // 5 regions
+        String str;
+        ArrayList<Integer> regions = new ArrayList<Integer>(NUM_REGIONS);
+        ArrayList<Integer> nations = new ArrayList<Integer>(NUM_NATIONS);
+        ArrayList<Integer> parts = new ArrayList<Integer>(NUM_PARTS);
+        // 5 Regions
         try {
-            String insert = "insert into region values (?,?,?);";
+            String insert = "INSERT INTO region VALUES(?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 5; i++) {
-                ps.setInt(1, i); // [1-5]
-                ps.setString(2, GenerationUtility.generateString(32));
-                ps.setString(3, GenerationUtility.generateString(80));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_REGIONS; i++) {
+                regions.add(GenerationUtility.generateInteger(false));
+                ps.setInt(1, regions.get(i));
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
+                if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(3, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(4, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 25 nations
+        // 25 Nations
         try {
-            String insert = "insert into nation values (?,?,?,?);";
+            String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 25; i++) {
-                ps.setInt(1, i); // [1-25]
-                ps.setString(2, GenerationUtility.generateString(32));
-                ps.setInt(3, (i%5)+1);
-                ps.setString(4, GenerationUtility.generateString(32));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_NATIONS; i++) {
+                nations.add(GenerationUtility.generateInteger(false));
+                ps.setInt(1, nations.get(i));
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
+                ps.setInt(3, regions.get(r.nextInt(regions.size())));
+                if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(4, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 666 part
+        // 666 Parts
         try {
-            String insert = "insert into part values (?,?,?,?,?,?,?,?,?);";
+            String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 666; i++) {
+            for (int i = 0; i < NUM_PARTS; i++) {
                 ps.setInt(1, i); // [1-666]
                 ps.setString(2, GenerationUtility.generateString(32));
                 ps.setString(3, GenerationUtility.generateString(32));
@@ -117,8 +139,8 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 33 supplier
-        try {
+        // 33 Suppliers
+        /*try {
             String insert = "insert into supplier values (?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 1; i <= 33; i++) {
@@ -135,7 +157,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 500 customers
+        // 500 Customers
         try {
             String insert = "insert into customer values (?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
@@ -154,7 +176,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 2666 partsupps
+        // 2666 Partsupps
         try {
             String insert = "insert into partsups values (?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
@@ -170,7 +192,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 5000 orders
+        // 5000 Orders
         try {
             String insert = "insert into part values (?,?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
@@ -190,7 +212,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 20000 lineitems
+        // 20000 Lineitems
         try {
             String insert = "insert into part values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
@@ -216,7 +238,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             ps.close();
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
     }
 
     @Override

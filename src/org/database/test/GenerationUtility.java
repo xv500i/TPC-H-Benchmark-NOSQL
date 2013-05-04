@@ -16,16 +16,14 @@ public class GenerationUtility {
     /**
      * @return an integer with at least 4 digits 
      */
-    public static Integer generateInteger() {
+    public static Integer generateInteger(boolean nullAllowed) {
         // NULL value?
-        int nullLimit = r.nextInt(10);
-        if (nullLimit == 0) return null;
+        if (nullAllowed) {
+            int nullLimit = r.nextInt(10);
+            if (nullLimit == 0) return null;
+        }
         
-        int integer;
-        do {
-            integer = r.nextInt();
-        } while (integer < 1000);
-        return integer;
+        return 1000 + r.nextInt(Integer.MAX_VALUE - 1000);
     }
     
     /**
