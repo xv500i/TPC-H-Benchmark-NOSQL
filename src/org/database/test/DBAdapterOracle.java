@@ -2,6 +2,8 @@
 package org.database.test;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
@@ -22,7 +24,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     private final static int NUM_CUSTOMERS = 500;
     private final static int NUM_PARTSUPPS = 2666;
     private final static int NUM_ORDERS = 5000;
-    private final static int NUM_LINEITEM = 20000;
+    private final static int NUM_LINEITEMS = 20000;
     
     private static Random r = new Random(System.currentTimeMillis());
     private Connection connection;
@@ -81,6 +83,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         String str;
         Integer itg;
         Double dbl;
+        Date dt;
         // 5 Regions
         try {
             String insert = "INSERT INTO region VALUES(?,?,?,?)";
@@ -183,12 +186,23 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 2666 Partsupps
+        ArrayList<ArrayList<Integer>> partsuppPK = new ArrayList<ArrayList<Integer>>(NUM_PARTSUPPS);
         try {
-            String insert = "INSERT INTO partsups VALUES(?,?,?,?,?,?)";
+            int part, supplier;
+            ArrayList<Integer> pk = new ArrayList<Integer>(2);
+            String insert = "INSERT INTO partsupp VALUES(?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_PARTSUPPS; i++) {
-                ps.setInt(1, 1 + r.nextInt(NUM_PARTS));
-                ps.setInt(2, 1 + r.nextInt(NUM_SUPPLIERS));
+                do {
+                    pk.clear();
+                    part = 1 + r.nextInt(NUM_PARTS);
+                    supplier = 1 + r.nextInt(NUM_SUPPLIERS);
+                    pk.add(part);
+                    pk.add(supplier);
+                } while (partsuppPK.contains(pk));
+                partsuppPK.add(pk);
+                ps.setInt(1, part);
+                ps.setInt(2, supplier);
                 if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(3, itg);
                 if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(4, dbl);
                 if ((str = GenerationUtility.generateString(200/2)) != null) ps.setString(5, str);
@@ -202,52 +216,70 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 5000 Orders
-        /*try {
-            String insert = "insert into part values (?,?,?,?,?,?,?,?,?);";
+        try {
+            String insert = "INSERT INTO order VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 5000; i++) {
-                ps.setInt(1, i); // [1-5000]
-                ps.setInt(2, (i%500)+1);
-                ps.setString(3, GenerationUtility.generateString(32));
-                ps.setDouble(4, GenerationUtility.generateNumber(6, 2));
-                ps.setDate(5, GenerationUtility.generateDate());
-                ps.setString(6, GenerationUtility.generateString(32));
-                ps.setString(7, GenerationUtility.generateString(32));
-                ps.setInt(8, GenerationUtility.generateInteger());
-                ps.setString(9, GenerationUtility.generateString(40));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_ORDERS; i++) {
+                ps.setInt(1, i + 1); // [1,NUM_ORDERS]
+                ps.setInt(2, 1 + r.nextInt(NUM_CUSTOMERS));
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(4, dbl);
+                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(5, dt);
+                if ((str = GenerationUtility.generateString(15/2)) != null) ps.setString(6, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(7, str);
+                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(8, itg);
+                if ((str = GenerationUtility.generateString(80/2)) != null) ps.setString(9, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(10, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 20000 Lineitems
+        HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
         try {
-            String insert = "insert into part values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            int order, linenumber;
+            ArrayList<Integer> pk = new ArrayList<Integer>(2);
+            String insert = "INSERT INTO lineitem VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 20000; i++) {
-                ps.setInt(1, (i%5000)+1);
-                ps.setInt(2, (i%666)+1);
-                ps.setInt(3, (i%33)+1);
-                ps.setInt(4, GenerationUtility.generateInteger());
-                ps.setInt(5, GenerationUtility.generateInteger());
-                ps.setDouble(6, GenerationUtility.generateNumber(6, 2));
-                ps.setDouble(7, GenerationUtility.generateNumber(6, 2));
-                ps.setDouble(8, GenerationUtility.generateNumber(6, 2));
-                ps.setString(9, GenerationUtility.generateString(32));
-                ps.setString(10, GenerationUtility.generateString(32));
-                ps.setDate(11, GenerationUtility.generateDate());
-                ps.setDate(12, GenerationUtility.generateDate());
-                ps.setDate(13, GenerationUtility.generateDate());
-                ps.setString(14, GenerationUtility.generateString(32));
-                ps.setString(15, GenerationUtility.generateString(32));
-                ps.setString(16, GenerationUtility.generateString(32));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_LINEITEMS; i++) {
+                do {
+                    pk.clear();
+                    order = 1 + r.nextInt(NUM_ORDERS);
+                    linenumber = r.nextInt();
+                    pk.add(order);
+                    pk.add(linenumber);
+                } while (lineitemPK.contains(pk));
+                lineitemPK.add(pk);
+                ps.setInt(1, order);
+                int index = r.nextInt(NUM_PARTSUPPS);
+                ps.setInt(2, partsuppPK.get(index).get(0));
+                ps.setInt(3, partsuppPK.get(index).get(1));
+                ps.setInt(4, linenumber);
+                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(5, itg);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(6, dbl);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(7, dbl);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(8, dbl);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(9, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(10, str);
+                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(11, dt);
+                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(12, dt);
+                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(13, dt);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(14, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(15, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(16, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(17, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+        }
     }
 
     @Override
