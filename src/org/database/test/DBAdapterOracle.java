@@ -81,16 +81,12 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     @Override
     protected void firstInsertOperation() {
         String str;
-        ArrayList<Integer> regions = new ArrayList<Integer>(NUM_REGIONS);
-        ArrayList<Integer> nations = new ArrayList<Integer>(NUM_NATIONS);
-        ArrayList<Integer> parts = new ArrayList<Integer>(NUM_PARTS);
         // 5 Regions
         try {
             String insert = "INSERT INTO region VALUES(?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_REGIONS; i++) {
-                regions.add(GenerationUtility.generateInteger(false));
-                ps.setInt(1, regions.get(i));
+                ps.setInt(1, i + 1); // [1,NUM_REGIONS]
                 if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
                 if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(3, str);
                 if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(4, str);
@@ -106,10 +102,9 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_NATIONS; i++) {
-                nations.add(GenerationUtility.generateInteger(false));
-                ps.setInt(1, nations.get(i));
+                ps.setInt(1, GenerationUtility.generateInteger(false));
                 if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
-                ps.setInt(3, regions.get(r.nextInt(regions.size())));
+                ps.setInt(3, 1 + r.nextInt(NUM_REGIONS));
                 if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(4, str);
                 if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
                 ps.addBatch();
@@ -121,7 +116,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         }
         // 666 Parts
         try {
-            String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?)";
+            String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_PARTS; i++) {
                 ps.setInt(1, i); // [1-666]
@@ -133,6 +128,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
                 ps.setString(7, GenerationUtility.generateString(32));
                 ps.setDouble(8, GenerationUtility.generateNumber(6,2));
                 ps.setString(9, GenerationUtility.generateString(32));
+                
                 ps.executeQuery();
             }
             ps.close();
