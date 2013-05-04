@@ -70,6 +70,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
     protected void firstInsertOperation() {
         List<DBObject> inserts;
         // 5 regions
+              
         inserts = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             BasicDBObject part = new BasicDBObject();
@@ -101,7 +102,8 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("b", GenerationUtility.generateString(32));
             part.append("c", GenerationUtility.generateString(32));
             part.append("d", GenerationUtility.generateString(32));
-            part.append("e", GenerationUtility.generateInteger());
+            Integer is = GenerationUtility.generateInteger();
+            part.append("e", is);
             part.append("f", GenerationUtility.generateString(32));
             part.append("g", GenerationUtility.generateNumber(6,2));
             part.append("h", GenerationUtility.generateString(32));
@@ -146,7 +148,8 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             BasicDBObject part = new BasicDBObject();
             part.append("a", (i%666)+1);
             part.append("b", (i%33)+1);
-            part.append("c", GenerationUtility.generateInteger());
+            Integer is = GenerationUtility.generateInteger();
+            part.append("c", is);
             part.append("d", GenerationUtility.generateNumber(6, 2));
             part.append("f", GenerationUtility.generateString(100));
             inserts.add(part);
@@ -164,7 +167,8 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("d", GenerationUtility.generateDate());
             part.append("e", GenerationUtility.generateString(32));
             part.append("f", GenerationUtility.generateString(32));
-            part.append("g", GenerationUtility.generateInteger());
+            Integer is = GenerationUtility.generateInteger();
+            part.append("g", is);
             part.append("h", GenerationUtility.generateString(40));
             inserts.add(part);
         }
@@ -174,11 +178,13 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         inserts = new ArrayList<>();
         for (int i = 1; i <= 20000; i++) {
             BasicDBObject part = new BasicDBObject();
-            part.append("_id", (i%5000)+1);
+            part.append("aa", (i%5000)+1);
             part.append("a", (i%666)+1);
             part.append("b", (i%33)+1);
-            part.append("c", GenerationUtility.generateInteger());
-            part.append("d", GenerationUtility.generateInteger());
+            Integer is = GenerationUtility.generateInteger();
+            part.append("c", is);
+            is = GenerationUtility.generateInteger();
+            part.append("d", is);
             part.append("e", GenerationUtility.generateNumber(6, 2));
             part.append("f", GenerationUtility.generateNumber(6, 2));
             part.append("g", GenerationUtility.generateNumber(6, 2));
