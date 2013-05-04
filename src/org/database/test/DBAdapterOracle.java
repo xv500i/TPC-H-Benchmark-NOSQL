@@ -94,7 +94,8 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             }
             ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 25 Nations
@@ -102,7 +103,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_NATIONS; i++) {
-                ps.setInt(1, GenerationUtility.generateInteger(false));
+                ps.setInt(1, i + 1); // [1,NUM_NATIONS]
                 if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
                 ps.setInt(3, 1 + r.nextInt(NUM_REGIONS));
                 if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(4, str);
@@ -111,7 +112,8 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             }
             ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 666 Parts
@@ -119,27 +121,29 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_PARTS; i++) {
-                ps.setInt(1, i); // [1-666]
-                ps.setString(2, GenerationUtility.generateString(32));
-                ps.setString(3, GenerationUtility.generateString(32));
-                ps.setString(4, GenerationUtility.generateString(32));
-                ps.setString(5, GenerationUtility.generateString(32));
+                ps.setInt(1, i); // [1,NUM_PARTS]
+                ps.setString(2, GenerationUtility.generateString(64/2));
+                ps.setString(3, GenerationUtility.generateString(64/2));
+                ps.setString(4, GenerationUtility.generateString(64/2));
+                ps.setString(5, GenerationUtility.generateString(64/2));
                 ps.setInt(6, GenerationUtility.generateInteger());
-                ps.setString(7, GenerationUtility.generateString(32));
-                ps.setDouble(8, GenerationUtility.generateNumber(6,2));
-                ps.setString(9, GenerationUtility.generateString(32));
-                
-                ps.executeQuery();
+                ps.setString(7, GenerationUtility.generateString(64/2));
+                ps.setDouble(8, GenerationUtility.generateNumber(12/2,2));
+                ps.setString(9, GenerationUtility.generateString(64/2));
+                ps.setString(10, GenerationUtility.generateString(64/2));
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 33 Suppliers
-        /*try {
-            String insert = "insert into supplier values (?,?,?,?,?,?,?);";
+        try {
+            String insert = "insert into supplier values (?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 33; i++) {
+            for (int i = NUM_SUPPLIERS; i < 33; i++) {
                 ps.setInt(1, i); // [1-33]
                 ps.setString(2, GenerationUtility.generateString(32));
                 ps.setString(3, GenerationUtility.generateString(32));
@@ -147,6 +151,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
                 ps.setString(5, GenerationUtility.generateString(32));
                 ps.setDouble(6, GenerationUtility.generateNumber(6, 2));
                 ps.setString(7, GenerationUtility.generateString(52));
+                ps.setString(8, GenerationUtility.generateString(64/2));
                 ps.executeQuery();
             }
             ps.close();
@@ -154,7 +159,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 500 Customers
-        try {
+        /*try {
             String insert = "insert into customer values (?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 1; i <= 500; i++) {
