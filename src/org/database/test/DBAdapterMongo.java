@@ -169,7 +169,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("O_custkey", (i%500)+1);
             part.append("O_orderstatus", GenerationUtility.generateString(32));
             part.append("O_totalprice", GenerationUtility.generateNumber(6, 2));
-            part.append("O_orderdate", GenerationUtility.generateDate());
+            part.append("O_orderdate", new java.util.Date());
             part.append("O_orderpriority", GenerationUtility.generateString(32));
             part.append("O_clerk", GenerationUtility.generateString(32));
             Integer is = GenerationUtility.generateInteger();
@@ -195,9 +195,9 @@ public class DBAdapterMongo extends AbstractDBAdapter {
             part.append("L_tax", GenerationUtility.generateNumber(6, 2));
             part.append("L_returnflag", GenerationUtility.generateString(32));
             part.append("L_linestatus", GenerationUtility.generateString(32));
-            part.append("L_shipdate", GenerationUtility.generateDate());
-            part.append("L_commitdate", GenerationUtility.generateDate());
-            part.append("L_receiptdate", GenerationUtility.generateDate());
+            part.append("L_shipdate", new java.util.Date());
+            part.append("L_commitdate", new java.util.Date());
+            part.append("L_receiptdate", new java.util.Date());
             part.append("L_shipinstruct", GenerationUtility.generateString(32));
             part.append("L_shipmode", GenerationUtility.generateString(32));
             part.append("L_comment", GenerationUtility.generateString(32));
@@ -215,10 +215,9 @@ public class DBAdapterMongo extends AbstractDBAdapter {
 
     @Override
     public void doQuery1() {
-        String date = "500-01-01";
         DBCollection lineitemCollection = db.getCollection("lineitem");
         
-        DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", date)) );
+        DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", new java.util.Date())) );
         // build the $projection operation
         
         DBObject fields = new BasicDBObject("L_returnflag", 1);
@@ -227,7 +226,6 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         fields.put("L_extendedprice", 1);
         fields.put("L_discount", 1);
         fields.put("L_tax", 1);
-        fields.put("L_shipdate", 1);
         fields.put("_id", 0);
         DBObject project = new BasicDBObject("$project", fields );
 
@@ -236,6 +234,14 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         groupBy.put("L_returnflag", "$L_returnflag");
         groupBy.put("L_linestatus", "$L_linestatus");
         DBObject groupFields = new BasicDBObject("_id", groupBy);
+        groupFields.put("sum_qty", new BasicDBObject("$sum", "$L_quantity"));
+        groupFields.put("sum_base_price", new BasicDBObject("$sum", "$L_extendedprice"));
+        groupFields.put("sum_disc_price", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)"));
+        groupFields.put("sum_charge", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)*(1-$L_tax)"));
+        groupFields.put("avg_qty", new BasicDBObject("$avg", "$L_quantity"));
+        groupFields.put("avg_extendedprice", new BasicDBObject("$avg", "$L_extendedprice"));
+        groupFields.put("avg_discount", new BasicDBObject("$avg", "$L_discount"));
+        groupFields.put("count_order", new BasicDBObject("$sum", 1));
         DBObject group = new BasicDBObject("$group", groupFields);
         
         // order by
