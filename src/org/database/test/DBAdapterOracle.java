@@ -2,8 +2,6 @@
 package org.database.test;
 
 import java.sql.*;
-import java.math.*;
-import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
@@ -81,6 +79,8 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     @Override
     protected void firstInsertOperation() {
         String str;
+        Integer itg;
+        Double dbl;
         // 5 Regions
         try {
             String insert = "INSERT INTO region VALUES(?,?,?,?)";
@@ -121,16 +121,16 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_PARTS; i++) {
-                ps.setInt(1, i); // [1,NUM_PARTS]
-                ps.setString(2, GenerationUtility.generateString(64/2));
-                ps.setString(3, GenerationUtility.generateString(64/2));
-                ps.setString(4, GenerationUtility.generateString(64/2));
-                ps.setString(5, GenerationUtility.generateString(64/2));
-                ps.setInt(6, GenerationUtility.generateInteger());
-                ps.setString(7, GenerationUtility.generateString(64/2));
-                ps.setDouble(8, GenerationUtility.generateNumber(12/2,2));
-                ps.setString(9, GenerationUtility.generateString(64/2));
-                ps.setString(10, GenerationUtility.generateString(64/2));
+                ps.setInt(1, i + 1); // [1,NUM_PARTS]
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(4, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
+                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(6, itg);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(7, str);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(8, dbl);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(9, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(10, str);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -141,60 +141,68 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         }
         // 33 Suppliers
         try {
-            String insert = "insert into supplier values (?,?,?,?,?,?,?,?);";
+            String insert = "INSERT INTO supplier VALUES(?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = NUM_SUPPLIERS; i < 33; i++) {
-                ps.setInt(1, i); // [1-33]
-                ps.setString(2, GenerationUtility.generateString(32));
-                ps.setString(3, GenerationUtility.generateString(32));
-                ps.setInt(4, (i%25)+1);
-                ps.setString(5, GenerationUtility.generateString(32));
-                ps.setDouble(6, GenerationUtility.generateNumber(6, 2));
-                ps.setString(7, GenerationUtility.generateString(52));
-                ps.setString(8, GenerationUtility.generateString(64/2));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_SUPPLIERS; i++) {
+                ps.setInt(1, i + 1); // [1,NUM_SUPPLIERS]
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
+                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));
+                if ((str = GenerationUtility.generateString(18/2)) != null) ps.setString(5, str);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(6, dbl);
+                if ((str = GenerationUtility.generateString(105/2)) != null) ps.setString(7, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(8, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 500 Customers
-        /*try {
-            String insert = "insert into customer values (?,?,?,?,?,?,?,?);";
+        try {
+            String insert = "INSERT INTO customer VALUES(?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 500; i++) {
-                ps.setInt(1, i); // [1-500]
-                ps.setString(2, GenerationUtility.generateString(32));
-                ps.setString(3, GenerationUtility.generateString(32));
-                ps.setInt(4, (i%25)+1);
-                ps.setString(5, GenerationUtility.generateString(32));
-                ps.setDouble(6, GenerationUtility.generateNumber(6, 2));
-                ps.setString(7, GenerationUtility.generateString(32));
-                ps.setString(8, GenerationUtility.generateString(60));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_CUSTOMERS; i++) {
+                ps.setInt(1, i + 1); // [1,NUM_CUSTOMERS]
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
+                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(6, dbl);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(7, str);
+                if ((str = GenerationUtility.generateString(120/2)) != null) ps.setString(8, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(9, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 2666 Partsupps
         try {
-            String insert = "insert into partsups values (?,?,?,?,?);";
+            String insert = "INSERT INTO partsups VALUES(?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 1; i <= 2666; i++) {
-                ps.setInt(1, (i%666)+1);
-                ps.setInt(2, (i%33)+1);
-                ps.setInt(3, GenerationUtility.generateInteger());
-                ps.setDouble(4, GenerationUtility.generateNumber(6, 2));
-                ps.setString(5, GenerationUtility.generateString(100));
-                ps.executeQuery();
+            for (int i = 0; i < NUM_PARTSUPPS; i++) {
+                ps.setInt(1, 1 + r.nextInt(NUM_PARTS));
+                ps.setInt(2, 1 + r.nextInt(NUM_SUPPLIERS));
+                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(3, itg);
+                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(4, dbl);
+                if ((str = GenerationUtility.generateString(200/2)) != null) ps.setString(5, str);
+                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(6, str);
+                ps.addBatch();
             }
+            ps.executeBatch();
             ps.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
         // 5000 Orders
-        try {
+        /*try {
             String insert = "insert into part values (?,?,?,?,?,?,?,?,?);";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 1; i <= 5000; i++) {
