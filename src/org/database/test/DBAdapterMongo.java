@@ -4,8 +4,12 @@
  */
 package org.database.test;
 
+import com.mongodb.AggregationOutput;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
@@ -68,6 +72,7 @@ public class DBAdapterMongo extends AbstractDBAdapter {
 
     @Override
     protected void firstInsertOperation() {
+        /*
         List<DBObject> inserts;
         // 5 regions
               
@@ -86,9 +91,9 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         for (int i = 1; i <= 25; i++) {
             BasicDBObject part = new BasicDBObject();
             part.append("_id", i); // [1-25]
-            part.append("a", GenerationUtility.generateString(32));
-            part.append("b", (i%5)+1);
-            part.append("c", GenerationUtility.generateString(32));
+            part.append("N_name", GenerationUtility.generateString(32));
+            part.append("N_regionkey", (i%5)+1);
+            part.append("N_comment", GenerationUtility.generateString(32));
             inserts.add(part);
         }
         db.getCollection("nation").insert(inserts);
@@ -98,15 +103,15 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         for (int i = 1; i <= 666; i++) {
             BasicDBObject part = new BasicDBObject();
             part.append("_id", i); // [1-666]
-            part.append("a", GenerationUtility.generateString(32));
-            part.append("b", GenerationUtility.generateString(32));
-            part.append("c", GenerationUtility.generateString(32));
-            part.append("d", GenerationUtility.generateString(32));
+            part.append("P_name", GenerationUtility.generateString(32));
+            part.append("P_mfgr", GenerationUtility.generateString(32));
+            part.append("P_brand", GenerationUtility.generateString(32));
+            part.append("P_type", GenerationUtility.generateString(32));
             Integer is = GenerationUtility.generateInteger();
-            part.append("e", is);
-            part.append("f", GenerationUtility.generateString(32));
-            part.append("g", GenerationUtility.generateNumber(6,2));
-            part.append("h", GenerationUtility.generateString(32));
+            part.append("P_size", is);
+            part.append("P_container", GenerationUtility.generateString(32));
+            part.append("P_retailprice", GenerationUtility.generateNumber(6,2));
+            part.append("P_comment", GenerationUtility.generateString(32));
             inserts.add(part);
         }
         db.getCollection("part").insert(inserts);
@@ -116,12 +121,12 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         for (int i = 1; i <= 33; i++) {
             BasicDBObject part = new BasicDBObject();
             part.append("_id", i); // [1-33]
-            part.append("a", GenerationUtility.generateString(32));
-            part.append("b", GenerationUtility.generateString(32));
-            part.append("c", (i%25)+1);
-            part.append("d", GenerationUtility.generateString(32));
-            part.append("e", GenerationUtility.generateNumber(6, 2));
-            part.append("f", GenerationUtility.generateString(52));
+            part.append("S_name", GenerationUtility.generateString(32));
+            part.append("S_address", GenerationUtility.generateString(32));
+            part.append("S_nationkey", (i%25)+1);
+            part.append("S_phone", GenerationUtility.generateString(32));
+            part.append("S_acctbal", GenerationUtility.generateNumber(6, 2));
+            part.append("S_comment", GenerationUtility.generateString(52));
             inserts.add(part);
         }
         db.getCollection("supplier").insert(inserts);
@@ -131,13 +136,13 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         for (int i = 1; i <= 500; i++) {
             BasicDBObject part = new BasicDBObject();
             part.append("_id", i); // [1-500]
-            part.append("a", GenerationUtility.generateString(32));
-            part.append("b", GenerationUtility.generateString(32));
-            part.append("c", (i%25)+1);
-            part.append("d", GenerationUtility.generateString(32));
-            part.append("e", GenerationUtility.generateNumber(6, 2));
-            part.append("f", GenerationUtility.generateString(32));
-            part.append("g", GenerationUtility.generateString(60));
+            part.append("C_name", GenerationUtility.generateString(32));
+            part.append("C_address", GenerationUtility.generateString(32));
+            part.append("C_nationkey", (i%25)+1);
+            part.append("C_phone", GenerationUtility.generateString(32));
+            part.append("C_acctbal", GenerationUtility.generateNumber(6, 2));
+            part.append("C_mktsegment", GenerationUtility.generateString(32));
+            part.append("C_comment", GenerationUtility.generateString(60));
             inserts.add(part);
         }
         db.getCollection("customer").insert(inserts);
@@ -146,12 +151,12 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         inserts = new ArrayList<>();
         for (int i = 1; i <= 2666; i++) {
             BasicDBObject part = new BasicDBObject();
-            part.append("a", (i%666)+1);
-            part.append("b", (i%33)+1);
+            part.append("PS_partkey", (i%666)+1);
+            part.append("PS_suppkey", (i%33)+1);
             Integer is = GenerationUtility.generateInteger();
-            part.append("c", is);
-            part.append("d", GenerationUtility.generateNumber(6, 2));
-            part.append("f", GenerationUtility.generateString(100));
+            part.append("PS_availqty", is);
+            part.append("PS_supplycost", GenerationUtility.generateNumber(6, 2));
+            part.append("PS_comment", GenerationUtility.generateString(100));
             inserts.add(part);
         }
         db.getCollection("partsupp").insert(inserts);
@@ -161,15 +166,15 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         for (int i = 1; i <= 5000; i++) {
             BasicDBObject part = new BasicDBObject();
             part.append("_id", i); // [1-5000]
-            part.append("a", (i%500)+1);
-            part.append("b", GenerationUtility.generateString(32));
-            part.append("c", GenerationUtility.generateNumber(6, 2));
-            part.append("d", GenerationUtility.generateDate());
-            part.append("e", GenerationUtility.generateString(32));
-            part.append("f", GenerationUtility.generateString(32));
+            part.append("O_custkey", (i%500)+1);
+            part.append("O_orderstatus", GenerationUtility.generateString(32));
+            part.append("O_totalprice", GenerationUtility.generateNumber(6, 2));
+            part.append("O_orderdate", GenerationUtility.generateDate());
+            part.append("O_orderpriority", GenerationUtility.generateString(32));
+            part.append("O_clerk", GenerationUtility.generateString(32));
             Integer is = GenerationUtility.generateInteger();
-            part.append("g", is);
-            part.append("h", GenerationUtility.generateString(40));
+            part.append("O_shippriority", is);
+            part.append("O_comment", GenerationUtility.generateString(40));
             inserts.add(part);
         }
         db.getCollection("order").insert(inserts);
@@ -178,28 +183,28 @@ public class DBAdapterMongo extends AbstractDBAdapter {
         inserts = new ArrayList<>();
         for (int i = 1; i <= 20000; i++) {
             BasicDBObject part = new BasicDBObject();
-            part.append("aa", (i%5000)+1);
-            part.append("a", (i%666)+1);
-            part.append("b", (i%33)+1);
+            part.append("L_orderkey", (i%5000)+1);
+            part.append("L_partkey", (i%666)+1);
+            part.append("L_suppkey", (i%33)+1);
             Integer is = GenerationUtility.generateInteger();
-            part.append("c", is);
+            part.append("L_linenumber", is);
             is = GenerationUtility.generateInteger();
-            part.append("d", is);
-            part.append("e", GenerationUtility.generateNumber(6, 2));
-            part.append("f", GenerationUtility.generateNumber(6, 2));
-            part.append("g", GenerationUtility.generateNumber(6, 2));
-            part.append("h", GenerationUtility.generateString(32));
-            part.append("i", GenerationUtility.generateString(32));
-            part.append("j", GenerationUtility.generateDate());
-            part.append("k", GenerationUtility.generateDate());
-            part.append("l", GenerationUtility.generateDate());
-            part.append("m", GenerationUtility.generateString(32));
-            part.append("n", GenerationUtility.generateString(32));
-            part.append("o", GenerationUtility.generateString(32));
+            part.append("L_quantity", is);
+            part.append("L_extentedprice", GenerationUtility.generateNumber(6, 2));
+            part.append("L_discount", GenerationUtility.generateNumber(6, 2));
+            part.append("L_tax", GenerationUtility.generateNumber(6, 2));
+            part.append("L_returnflag", GenerationUtility.generateString(32));
+            part.append("L_linestatus", GenerationUtility.generateString(32));
+            part.append("L_shipdate", GenerationUtility.generateDate());
+            part.append("L_commitdate", GenerationUtility.generateDate());
+            part.append("L_receiptdate", GenerationUtility.generateDate());
+            part.append("L_shipinstruct", GenerationUtility.generateString(32));
+            part.append("L_shipmode", GenerationUtility.generateString(32));
+            part.append("L_comment", GenerationUtility.generateString(32));
             inserts.add(part);
         }
         db.getCollection("lineitem").insert(inserts);
-        System.exit(0);    
+        */    
     }
 
     @Override
@@ -210,9 +215,60 @@ public class DBAdapterMongo extends AbstractDBAdapter {
 
     @Override
     public void doQuery1() {
-        //DBCursor find = tpcCollection.find(new BasicDBObject());
-        //System.out.println("Query 1 returned: " + find.count() + " rows.");
-        throw new UnsupportedOperationException("Not supported yet.");
+        String date = "500-01-01";
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        
+        DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", date)) );
+        // build the $projection operation
+        
+        DBObject fields = new BasicDBObject("L_returnflag", 1);
+        fields.put("L_linestatus", 1);
+        fields.put("L_quantity", 1);
+        fields.put("L_extendedprice", 1);
+        fields.put("L_discount", 1);
+        fields.put("L_tax", 1);
+        fields.put("L_shipdate", 1);
+        fields.put("_id", 0);
+        DBObject project = new BasicDBObject("$project", fields );
+
+        // Now the $group operation
+        DBObject groupBy = new BasicDBObject();
+        groupBy.put("L_returnflag", "$L_returnflag");
+        groupBy.put("L_linestatus", "$L_linestatus");
+        DBObject groupFields = new BasicDBObject("_id", groupBy);
+        DBObject group = new BasicDBObject("$group", groupFields);
+        
+        // order by
+        DBObject orderClause = new BasicDBObject("L_returnflag", 1);
+        orderClause.put("L_linestatus", 1);
+        DBObject order = new BasicDBObject("$sort", orderClause);
+        
+        // run aggregation
+        AggregationOutput output = lineitemCollection.aggregate( match, project, group, order );
+        
+        /*
+        // note - the collection still has the field name "dolaznaStr"
+        // but, to we access "dolaznaStr" in the aggregation command, 
+        // we add a $ sign in the BasicDBObject 
+
+        DBObject groupFields = new BasicDBObject( "_id", "$L_linestatus");
+
+        // we use the $sum operator to increment the "count" 
+        // for each unique dolaznaStr 
+        groupFields.put("count", new BasicDBObject( "$sum", 1));
+        DBObject group = new BasicDBObject("$group", groupFields );
+
+
+        // You can add a sort to order by count descending
+
+        DBObject sortFields = new BasicDBObject("count", -1);
+        DBObject sort = new BasicDBObject("$sort", sortFields );
+        
+
+        AggregationOutput output = lineitemCollection.aggregate(group);
+        */
+        System.out.println( output.getCommandResult() );
+        System.exit(0);
     }
 
     @Override
