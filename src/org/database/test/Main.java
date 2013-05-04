@@ -20,8 +20,15 @@ public class Main {
         
         // INSERT FIRST BULK
         float time;
-        time = adapter.insertFirstBulk();
-        System.out.println("First bulk insert time = " + time);
+        /*time = adapter.insertFirstBulk();
+        System.out.println("First bulk insert time = " + time);*/
+        
+        // Execute Query 1
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) {
+            time = Math.min(time, adapter.executeQuery1());
+        }
+        System.out.println("Query1 time = " + time);
     }
     
     public static void mongoDBExecution() {

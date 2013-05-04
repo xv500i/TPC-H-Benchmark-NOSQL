@@ -3,6 +3,7 @@ package org.database.test;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
@@ -78,29 +79,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         }
     }
 
-    private void setPreparedStatementString(PreparedStatement ps, int index, int stringLength) throws SQLException {
-        String str = GenerationUtility.generateString(stringLength);
-        if (str != null) ps.setString(index, str);
-        else ps.setNull(index, java.sql.Types.VARCHAR);
-    }
-    
-    private void setPreparedStatementInteger(PreparedStatement ps, int index) throws SQLException {
-        Integer itg = GenerationUtility.generateInteger();
-        if (itg != null) ps.setInt(index, itg);
-        else ps.setNull(index, java.sql.Types.INTEGER);
-    }
-    
-    private void setPreparedStatementNumber(PreparedStatement ps, int index, int numDigits, int numDecimals) throws SQLException {
-        Double dbl = GenerationUtility.generateNumber(numDigits, numDecimals);
-        if (dbl != null) ps.setDouble(index, dbl);
-        else ps.setNull(index, java.sql.Types.DECIMAL);
-    }
-    
-    private void setPreparedStatementDate(PreparedStatement ps, int index) throws SQLException {
-        Date dt = GenerationUtility.generateDate();
-        if (dt != null) ps.setDate(index, dt);
-        else ps.setNull(index, java.sql.Types.DATE);
-    }
+
     
     @Override
     protected void firstInsertOperation() {
@@ -320,21 +299,19 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     public void doQuery1() {
         try {
             Statement st = connection.createStatement();
-            String date = "500-05-27"; // FIXME: must exist
-            boolean execute = st.execute(
-                "SELECT l_returnflag, l_linestatus, sum(l_quantity) as sum_qty, sum(l_extendedprice) as sum_base_price, sum(l_extendedprice*(1-l_discount)) as sum_disc_price, sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, avg(l_quantity) as avg_qty, avg(l_extendedprice) as avg_price, avg(l_discount) as avg_disc, count(*) as count_order"
-                +"FROM lineitem"
-                +"WHERE l_shipdate <= '" + date + "'" 
-                +"GROUP BY l_returnflag, l_linestatus"
-                +"ORDER BY l_returnflag, l_linestatus;");
-            if (execute) {
-                ResultSet resultSet = st.getResultSet();
-                System.out.println("Q1 returned " + resultSet.getFetchSize() + " rows.");
-                resultSet.close();
-            } else {
-                System.out.println("Q1 returned " + 0 + " rows.");
-            }
-        } catch (SQLException ex) {
+            Date date = null;
+            while (date == null) date = GenerationUtility.generateDate();
+            st.execute(
+                "SELECT l_returnflag, l_linestatus, SUM(l_quantity) AS sum_qty, SUM(l_extendedprice) AS sum_base_price, "
+                        + "SUM(l_extendedprice*(1-l_discount)) AS sum_disc_price, SUM(l_extendedprice*(1-l_discount)*(1+l_tax)) AS sum_charge, "
+                        + "AVG(l_quantity) AS avg_qty, AVG(l_extendedprice) AS avg_price, AVG(l_discount) AS avg_disc, COUNT(*) as count_order "
+              + "FROM lineitem "
+              + "WHERE l_shipdate <= '" + getDateString(date) + "' " 
+              + "GROUP BY l_returnflag, l_linestatus "
+              + "ORDER BY l_returnflag, l_linestatus"
+            );
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -346,10 +323,11 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             String size = "2000"; // MUST EXIST
             String type = "A";
             String region = "Qaoxp"; 
-            boolean execute = st.execute("SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment"
-                +"FROM part, supplier, partsupp, nation, region"
-                +"WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = " + size + " AND p_type like '%" + type + "' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "' AND ps_supplycost = (SELECT min(ps_supplycost) FROM partsupp, supplier, nation, region WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "')"
-                +"ORDER BY s_acctbal desc, n_name, s_name, p_partkey;");
+            boolean execute = st.execute(
+                "SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment "
+              + "FROM part, supplier, partsupp, nation, region "
+              + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = " + size + " AND p_type like '%" + type + "' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "' AND ps_supplycost = (SELECT min(ps_supplycost) FROM partsupp, supplier, nation, region WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "')"
+              + "ORDER BY s_acctbal desc, n_name, s_name, p_partkey;");
             if (execute) {
                 ResultSet resultSet = st.getResultSet();
                 System.out.println("Q2 returned " + resultSet.getFetchSize() + " rows.");
@@ -408,6 +386,39 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         } catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    
+    /* Utility methods for adding randoms to preparedStatement */
+    private void setPreparedStatementString(PreparedStatement ps, int index, int stringLength) throws SQLException {
+        String str = GenerationUtility.generateString(stringLength);
+        if (str != null) ps.setString(index, str);
+        else ps.setNull(index, java.sql.Types.VARCHAR);
+    }
+    
+    private void setPreparedStatementInteger(PreparedStatement ps, int index) throws SQLException {
+        Integer itg = GenerationUtility.generateInteger();
+        if (itg != null) ps.setInt(index, itg);
+        else ps.setNull(index, java.sql.Types.INTEGER);
+    }
+    
+    private void setPreparedStatementNumber(PreparedStatement ps, int index, int numDigits, int numDecimals) throws SQLException {
+        Double dbl = GenerationUtility.generateNumber(numDigits, numDecimals);
+        if (dbl != null) ps.setDouble(index, dbl);
+        else ps.setNull(index, java.sql.Types.DECIMAL);
+    }
+    
+    private void setPreparedStatementDate(PreparedStatement ps, int index) throws SQLException {
+        Date dt = GenerationUtility.generateDate();
+        if (dt != null) ps.setDate(index, dt);
+        else ps.setNull(index, java.sql.Types.DATE);
+    }
+    
+    /* Utility method for converting a date to a Oracle-like format date string */
+    private String getDateString(Date date) {
+        String dateString = date.toString();
+        String[] dateParts = dateString.split("-");
+        return dateParts[2] + "/" + dateParts[1] + "/" + dateParts[0];
     }
     
 }
