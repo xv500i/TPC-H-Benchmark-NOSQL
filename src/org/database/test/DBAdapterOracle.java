@@ -60,7 +60,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             while (result.next()){
                 System.out.println("Current Date from Oracle : " + result.getString("current_day"));
             }
-            System.out.println("done");
+            System.out.println("Done");
         } 
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
@@ -78,21 +78,41 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         }
     }
 
+    private void setPreparedStatementString(PreparedStatement ps, int index, int stringLength) throws SQLException {
+        String str = GenerationUtility.generateString(stringLength);
+        if (str != null) ps.setString(index, str);
+        else ps.setNull(index, java.sql.Types.VARCHAR);
+    }
+    
+    private void setPreparedStatementInteger(PreparedStatement ps, int index) throws SQLException {
+        Integer itg = GenerationUtility.generateInteger();
+        if (itg != null) ps.setInt(index, itg);
+        else ps.setNull(index, java.sql.Types.INTEGER);
+    }
+    
+    private void setPreparedStatementNumber(PreparedStatement ps, int index, int numDigits, int numDecimals) throws SQLException {
+        Double dbl = GenerationUtility.generateNumber(numDigits, numDecimals);
+        if (dbl != null) ps.setDouble(index, dbl);
+        else ps.setNull(index, java.sql.Types.DECIMAL);
+    }
+    
+    private void setPreparedStatementDate(PreparedStatement ps, int index) throws SQLException {
+        Date dt = GenerationUtility.generateDate();
+        if (dt != null) ps.setDate(index, dt);
+        else ps.setNull(index, java.sql.Types.DATE);
+    }
+    
     @Override
     protected void firstInsertOperation() {
-        String str;
-        Integer itg;
-        Double dbl;
-        Date dt;
         // 5 Regions
         try {
             String insert = "INSERT INTO region VALUES(?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_REGIONS; i++) {
                 ps.setInt(1, i + 1); // [1,NUM_REGIONS]
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
-                if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(3, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(4, str);
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 160/2);
+                setPreparedStatementString(ps, 4, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -101,16 +121,17 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_REGIONS + " inserts region acabats");
         // 25 Nations
         try {
             String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_NATIONS; i++) {
                 ps.setInt(1, i + 1); // [1,NUM_NATIONS]
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
-                ps.setInt(3, 1 + r.nextInt(NUM_REGIONS));
-                if ((str = GenerationUtility.generateString(160/2)) != null) ps.setString(4, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
+                setPreparedStatementString(ps, 2, 64/2);
+                ps.setInt(3, 1 + r.nextInt(NUM_REGIONS));   // FK Region
+                setPreparedStatementString(ps, 4, 160/2);
+                setPreparedStatementString(ps, 5, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -119,21 +140,22 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_NATIONS + " inserts nation acabats");
         // 666 Parts
         try {
             String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_PARTS; i++) {
                 ps.setInt(1, i + 1); // [1,NUM_PARTS]
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(4, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
-                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(6, itg);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(7, str);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(8, dbl);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(9, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(10, str);
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 64/2);
+                setPreparedStatementString(ps, 4, 64/2);
+                setPreparedStatementString(ps, 5, 64/2);
+                setPreparedStatementInteger(ps, 6);
+                setPreparedStatementString(ps, 7, 64/2);
+                setPreparedStatementNumber(ps, 8, 13/2, 2);
+                setPreparedStatementString(ps, 9, 64/2);
+                setPreparedStatementString(ps, 10, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -142,19 +164,20 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_PARTS + " inserts part acabats");
         // 33 Suppliers
         try {
             String insert = "INSERT INTO supplier VALUES(?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_SUPPLIERS; i++) {
                 ps.setInt(1, i + 1); // [1,NUM_SUPPLIERS]
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
-                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));
-                if ((str = GenerationUtility.generateString(18/2)) != null) ps.setString(5, str);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(6, dbl);
-                if ((str = GenerationUtility.generateString(105/2)) != null) ps.setString(7, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(8, str);
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 64/2);
+                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));   // FK Nation
+                setPreparedStatementString(ps, 5, 18/2);
+                setPreparedStatementNumber(ps, 6, 13/2, 2);
+                setPreparedStatementString(ps, 7, 105/2);
+                setPreparedStatementString(ps, 8, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -163,20 +186,21 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_SUPPLIERS + " inserts supplier acabats");
         // 500 Customers
         try {
             String insert = "INSERT INTO customer VALUES(?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_CUSTOMERS; i++) {
                 ps.setInt(1, i + 1); // [1,NUM_CUSTOMERS]
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(2, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
-                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(5, str);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(6, dbl);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(7, str);
-                if ((str = GenerationUtility.generateString(120/2)) != null) ps.setString(8, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(9, str);
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 64/2);
+                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));   // FK Nation
+                setPreparedStatementString(ps, 5, 64/2);
+                setPreparedStatementNumber(ps, 6, 13/2, 2);
+                setPreparedStatementString(ps, 7, 64/2);
+                setPreparedStatementString(ps, 8, 120/2);
+                setPreparedStatementString(ps, 9, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -185,28 +209,29 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_CUSTOMERS + " inserts customer acabats");
         // 2666 Partsupps
         ArrayList<ArrayList<Integer>> partsuppPK = new ArrayList<ArrayList<Integer>>(NUM_PARTSUPPS);
         try {
+            ArrayList<Integer> pk;
             int part, supplier;
-            ArrayList<Integer> pk = new ArrayList<Integer>(2);
             String insert = "INSERT INTO partsupp VALUES(?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_PARTSUPPS; i++) {
                 do {
-                    pk.clear();
-                    part = 1 + r.nextInt(NUM_PARTS);
-                    supplier = 1 + r.nextInt(NUM_SUPPLIERS);
+                    pk = new ArrayList<Integer>(2);
+                    part = 1 + r.nextInt(NUM_PARTS);            // FK Part
+                    supplier = 1 + r.nextInt(NUM_SUPPLIERS);    // FK Supplier
                     pk.add(part);
                     pk.add(supplier);
                 } while (partsuppPK.contains(pk));
                 partsuppPK.add(pk);
                 ps.setInt(1, part);
                 ps.setInt(2, supplier);
-                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(3, itg);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(4, dbl);
-                if ((str = GenerationUtility.generateString(200/2)) != null) ps.setString(5, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(6, str);
+                setPreparedStatementInteger(ps, 3);
+                setPreparedStatementNumber(ps, 4, 13/2, 2);
+                setPreparedStatementString(ps, 5, 200/2);
+                setPreparedStatementString(ps, 6, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -215,21 +240,22 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_PARTSUPPS + " inserts partsupp acabats");
         // 5000 Orders
         try {
-            String insert = "INSERT INTO order VALUES(?,?,?,?,?,?,?,?,?,?)";
+            String insert = "INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_ORDERS; i++) {
                 ps.setInt(1, i + 1); // [1,NUM_ORDERS]
-                ps.setInt(2, 1 + r.nextInt(NUM_CUSTOMERS));
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(3, str);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(4, dbl);
-                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(5, dt);
-                if ((str = GenerationUtility.generateString(15/2)) != null) ps.setString(6, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(7, str);
-                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(8, itg);
-                if ((str = GenerationUtility.generateString(80/2)) != null) ps.setString(9, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(10, str);
+                ps.setInt(2, 1 + r.nextInt(NUM_CUSTOMERS)); // FK Customer
+                setPreparedStatementString(ps, 3, 64/2);
+                setPreparedStatementNumber(ps, 4, 13/2, 2);
+                setPreparedStatementDate(ps, 5);
+                setPreparedStatementString(ps, 6, 15/2);
+                setPreparedStatementString(ps, 7, 64/2);
+                setPreparedStatementInteger(ps, 8);
+                setPreparedStatementString(ps, 9, 80/2);
+                setPreparedStatementString(ps, 10, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -238,40 +264,41 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_ORDERS + " inserts order acabats");
         // 20000 Lineitems
         HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
         try {
+            ArrayList<Integer> pk;
             int order, linenumber;
-            ArrayList<Integer> pk = new ArrayList<Integer>(2);
             String insert = "INSERT INTO lineitem VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = connection.prepareStatement(insert);
             for (int i = 0; i < NUM_LINEITEMS; i++) {
                 do {
-                    pk.clear();
-                    order = 1 + r.nextInt(NUM_ORDERS);
+                    pk = new ArrayList<Integer>(2);
+                    order = 1 + r.nextInt(NUM_ORDERS);  // FK Order
                     linenumber = r.nextInt();
                     pk.add(order);
                     pk.add(linenumber);
                 } while (lineitemPK.contains(pk));
                 lineitemPK.add(pk);
                 ps.setInt(1, order);
-                int index = r.nextInt(NUM_PARTSUPPS);
+                int index = r.nextInt(NUM_PARTSUPPS);   // FK Partsupp
                 ps.setInt(2, partsuppPK.get(index).get(0));
                 ps.setInt(3, partsuppPK.get(index).get(1));
                 ps.setInt(4, linenumber);
-                if ((itg = GenerationUtility.generateInteger()) != null) ps.setInt(5, itg);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(6, dbl);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(7, dbl);
-                if ((dbl = GenerationUtility.generateNumber(13/2, 2)) != null) ps.setDouble(8, dbl);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(9, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(10, str);
-                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(11, dt);
-                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(12, dt);
-                if ((dt = GenerationUtility.generateDate()) != null) ps.setDate(13, dt);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(14, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(15, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(16, str);
-                if ((str = GenerationUtility.generateString(64/2)) != null) ps.setString(17, str);
+                setPreparedStatementInteger(ps, 5);
+                setPreparedStatementNumber(ps, 6, 13/2, 2);
+                setPreparedStatementNumber(ps, 7, 13/2, 2);
+                setPreparedStatementNumber(ps, 8, 13/2, 2);
+                setPreparedStatementString(ps, 9, 64/2);
+                setPreparedStatementString(ps, 10, 64/2);
+                setPreparedStatementDate(ps, 11);
+                setPreparedStatementDate(ps, 12);
+                setPreparedStatementDate(ps, 13);
+                setPreparedStatementString(ps, 14, 64/2);
+                setPreparedStatementString(ps, 15, 64/2);
+                setPreparedStatementString(ps, 16, 64/2);
+                setPreparedStatementString(ps, 17, 64/2);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -280,6 +307,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
     }
 
     @Override

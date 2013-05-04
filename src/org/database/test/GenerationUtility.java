@@ -2,6 +2,7 @@
 package org.database.test;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.Random;
 
 /**
@@ -32,7 +33,11 @@ public class GenerationUtility {
         int nullLimit = r.nextInt(10);
         if (nullLimit == 0) return null;
         
-        return new Date(r.nextLong());
+        long offset = Timestamp.valueOf("2010-01-01 00:00:00").getTime();
+        long end = Timestamp.valueOf("2013-04-30 00:00:00").getTime();
+        long diff = end - offset + 1;
+        Timestamp rand = new Timestamp(offset + (long)(r.nextDouble()*diff));
+        return new Date(rand.getTime());
     }
     
     /**
