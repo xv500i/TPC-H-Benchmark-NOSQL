@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.database.test;
 
 import java.sql.Date;
@@ -9,22 +6,25 @@ import java.util.Random;
 
 /**
  *
- * @author Alex
+ * @author Alex Soms Batalla
+ * @author Natxo Raga Llorens
  */
 public class GenerationUtility {
     
     private static Random r = new Random(System.currentTimeMillis());
     
     /**
-     * 
-     * @return integer inside [1000-9999] 
+     * @return an integer with at least 4 digits 
      */
     public static int generateInteger() {
-        return 1000 + r.nextInt(9000);
+        int integer;
+        do {
+            integer = r.nextInt();
+        } while (integer < 1000);
+        return integer;
     }
     
     /**
-     * 
      * @return a random date 
      */
     public static Date generateDate() {
@@ -32,9 +32,8 @@ public class GenerationUtility {
     }
     
     /**
-     * 
      * @param size the string size
-     * @return a string of size characters in [A-Za-z]
+     * @return a string of size 'size' with characters [A-Z, a-z]
      */
     public static String generateString(int size) {
         StringBuilder sb = new StringBuilder(size);
@@ -46,9 +45,9 @@ public class GenerationUtility {
     }
 
     /**
-     * 
      * @param numberOfDigits the number of digits wanted
-     * @return a double with numberOfDigits digits
+     * @param decimalDigits the number of decimal digits wanted
+     * @return a double with numberOfDigits digits and decimalDigits decimal digits
      */
     public static double generateNumber(int numberOfDigits, int decimalDigits) {
         // example 7,2: [0, 9999,99]

@@ -10,7 +10,8 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Alex
+ * @author Alex Soms Batalla
+ * @author Natxo Raga Llorens
  */
 public class DBAdapterOracle extends AbstractDBAdapter {
 
@@ -39,11 +40,9 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             System.exit(-1);
         }
 
-        String sql = "select sysdate as current_day from dual";
-
-        //creating PreparedStatement object to execute query
-        
+        // Connection TEST
         try {
+            String sql = "select sysdate as current_day from dual";
             PreparedStatement preStatement = connection.prepareStatement(sql);
             ResultSet result = preStatement.executeQuery();
             while (result.next()){
