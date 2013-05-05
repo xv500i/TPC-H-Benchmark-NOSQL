@@ -20,9 +20,10 @@ public class Main {
         
         // INSERT FIRST BULK
         float time;
-        /*time = adapter.insertFirstBulk();
-        System.out.println("First bulk insert time = " + time);*/
+        time = adapter.insertFirstBulk();
+        System.out.println("First bulk insert time = " + time);
         
+        /*
         // OBTAIN REQUIRED PARAMETERS FOR THE QUERIES
         ((DBAdapterOracle)adapter).obtainQueryParameters();
         
@@ -44,7 +45,11 @@ public class Main {
         // QUERY 4
         time = Float.MAX_VALUE;
         for (int i = 0; i < 5; i++) time = Math.min(time, adapter.executeQuery4());
-        System.out.println("Query4 time = " + time);
+        System.out.println("Query4 time = " + time);*/
+        
+        // INSERT SECOND BULK
+        time = adapter.insertSecondBulk();
+        System.out.println("Second bulk insert time = " + time);
     }
     
     public static void mongoDBExecution() {

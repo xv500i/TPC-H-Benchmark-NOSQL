@@ -28,7 +28,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     
     /* Num inserts */
     private final static int NUM_LINEITEMS = 20000;
-    private final static double SF = NUM_LINEITEMS/LINEITEM_CARDINALITY;
+    private final static double SF = (double)NUM_LINEITEMS/(double)LINEITEM_CARDINALITY;
     private final static int NUM_REGIONS = REGION_CARDINALITY;
     private final static int NUM_NATIONS = NATION_CARDINALITY;
     private final static int NUM_PARTS = (int)(PART_CARDINALITY*SF);
@@ -135,7 +135,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         System.out.println(NUM_REGIONS + " inserts region acabats");
         insertNations(NUM_NATIONS, NUM_NATIONS + 1, NUM_REGIONS*2);         // 25 Nations (50 Nations total)
         System.out.println(NUM_NATIONS + " inserts nation acabats");
-        insertParts(NUM_PARTS, 1);                                          // 666 Parts (1332 Parts total)
+        insertParts(NUM_PARTS, NUM_PARTS + 1);                              // 666 Parts (1332 Parts total)
         System.out.println(NUM_PARTS + " inserts part acabats");
         insertSuppliers(NUM_SUPPLIERS, NUM_SUPPLIERS + 1, NUM_NATIONS*2);   // 33 Suppliers (66 Suppliers total)
         System.out.println(NUM_SUPPLIERS + " inserts supplier acabats");
@@ -217,47 +217,6 @@ public class DBAdapterOracle extends AbstractDBAdapter {
               + "AND o_orderdate >= '" + getDateString(orderOrderdate2) + "' AND o_orderdate < '" + getDateString(orderOrderdate3) + "' + INTERVAL '1' YEAR "
               + "GROUP BY n_name "
               + "ORDER BY revenue DESC");
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    
-    /* Inserting methods */
-    private void insertRegions(int numInserts, int firstInsertPK) {
-        try {
-            String insert = "INSERT INTO region VALUES(?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < numInserts; i++) {
-                ps.setInt(1, firstInsertPK + i);            // PK
-                setPreparedStatementString(ps, 2, 64/2);
-                setPreparedStatementString(ps, 3, 160/2);
-                setPreparedStatementString(ps, 4, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
-        try {
-            String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < numInserts; i++) {
-                ps.setInt(1, firstInsertPK + i);            // PK
-                setPreparedStatementString(ps, 2, 64/2);
-                ps.setInt(3, 1 + r.nextInt(numRegions));    // FK Region
-                setPreparedStatementString(ps, 4, 160/2);
-                setPreparedStatementString(ps, 5, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
         } 
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
@@ -353,6 +312,47 @@ public class DBAdapterOracle extends AbstractDBAdapter {
                 orderOrderdate3 = auxDate;
             }
         }
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
+    /* Inserting methods */
+    private void insertRegions(int numInserts, int firstInsertPK) {
+        try {
+            String insert = "INSERT INTO region VALUES(?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 160/2);
+                setPreparedStatementString(ps, 4, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
+        try {
+            String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                ps.setInt(3, 1 + r.nextInt(numRegions));    // FK Region
+                setPreparedStatementString(ps, 4, 160/2);
+                setPreparedStatementString(ps, 5, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
