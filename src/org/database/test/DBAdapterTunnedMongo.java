@@ -45,16 +45,119 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
 
     @Override
     protected void firstInsertOperation() {
-        
+        /*
         List<DBObject> inserts;
-        // 5 regions
-              
         inserts = new ArrayList<>();
-        for (int i = 1; i <= 2666; i++) {
+        
+        Integer ps_availqty = GenerationUtility.generateInteger();
+        Double ps_supplycost = GenerationUtility.generateNumber(6, 2);
+        String ps_comment = GenerationUtility.generateString(100);
+        
+        String p_name = GenerationUtility.generateString(32);
+        String p_mfgr = GenerationUtility.generateString(32);
+        String p_brand = GenerationUtility.generateString(32);
+        String p_type = GenerationUtility.generateString(32);
+        Integer p_size = GenerationUtility.generateInteger();
+        String p_container = GenerationUtility.generateString(32);
+        Double p_retailprice = GenerationUtility.generateNumber(6,2);
+        String p_comment = GenerationUtility.generateString(32);
+        
+        String s_name = GenerationUtility.generateString(32);
+        String s_address = GenerationUtility.generateString(32);
+        String s_phone = GenerationUtility.generateString(32);
+        Double s_acctbal = GenerationUtility.generateNumber(6, 2);
+        String s_comment = GenerationUtility.generateString(52);
+        
+        String n_name_supplier = GenerationUtility.generateString(32);
+        String n_comment_supplier = GenerationUtility.generateString(32);
+        
+        String n_name_customer = GenerationUtility.generateString(32);
+        String n_comment_customer = GenerationUtility.generateString(32);
+        
+        String r_name_customer = GenerationUtility.generateString(32);
+        String r_comment_customer = GenerationUtility.generateString(80);
+
+        String r_name_supplier = GenerationUtility.generateString(32);
+        String r_comment_supplier = GenerationUtility.generateString(80);
+        
+        String o_orderstatus = GenerationUtility.generateString(32);
+        Double o_totalprice = GenerationUtility.generateNumber(6, 2);
+        java.util.Date o_orderdate = new java.util.Date();
+        String o_orderpriority = GenerationUtility.generateString(32);
+        String o_clerk = GenerationUtility.generateString(32);
+        Integer o_shippriority = GenerationUtility.generateInteger();
+        String o_comment = GenerationUtility.generateString(40);
+        
+        String c_name = GenerationUtility.generateString(32);
+        String c_address = GenerationUtility.generateString(32);
+        String c_phone = GenerationUtility.generateString(32);
+        Double c_acctbal = GenerationUtility.generateNumber(6, 2);
+        String c_mktsegment = GenerationUtility.generateString(32);
+        String c_comment = GenerationUtility.generateString(60);
+        
+        for (int i = 1; i <= 20000; i++) {
+            if (i%4000 == 0) {
+                //changeCustomerRegion = true;
+                r_name_customer = GenerationUtility.generateString(32);
+                r_comment_customer = GenerationUtility.generateString(80);
+                //changeSupplierRegion = true;
+                r_name_supplier = GenerationUtility.generateString(32);
+                r_comment_supplier = GenerationUtility.generateString(80);
+            }
+            if (i%800 == 0) {
+                //changeCustomerNation = true;
+                n_name_customer = GenerationUtility.generateString(32);
+                n_comment_customer = GenerationUtility.generateString(32);
+                //changeSupplierNation = true;
+                n_name_supplier = GenerationUtility.generateString(32);
+                n_comment_supplier = GenerationUtility.generateString(32);
+            }
+            if (i%4 == 0) {
+                //changeOrder = true;
+                o_orderstatus = GenerationUtility.generateString(32);
+                o_totalprice = GenerationUtility.generateNumber(6, 2);
+                o_orderdate = new java.util.Date();
+                o_orderpriority = GenerationUtility.generateString(32);
+                o_clerk = GenerationUtility.generateString(32);
+                o_shippriority = GenerationUtility.generateInteger();
+                o_comment = GenerationUtility.generateString(40);
+            }
+            if (i%600 == 0) {
+                //changeSupplier = true;
+                s_name = GenerationUtility.generateString(32);
+                s_address = GenerationUtility.generateString(32);
+                s_phone = GenerationUtility.generateString(32);
+                s_acctbal = GenerationUtility.generateNumber(6, 2);
+                s_comment = GenerationUtility.generateString(52);
+            }
+            if (i%40 == 0) {
+                //changeCustomer = true;
+                c_name = GenerationUtility.generateString(32);
+                c_address = GenerationUtility.generateString(32);
+                c_phone = GenerationUtility.generateString(32);
+                c_acctbal = GenerationUtility.generateNumber(6, 2);
+                c_mktsegment = GenerationUtility.generateString(32);
+                c_comment = GenerationUtility.generateString(60);
+            }
+            if (i%30 == 0) {
+                //changePart = true;
+                p_name = GenerationUtility.generateString(32);
+                p_mfgr = GenerationUtility.generateString(32);
+                p_brand = GenerationUtility.generateString(32);
+                p_type = GenerationUtility.generateString(32);
+                p_size = GenerationUtility.generateInteger();
+                p_container = GenerationUtility.generateString(32);
+                p_retailprice = GenerationUtility.generateNumber(6,2);
+                p_comment = GenerationUtility.generateString(32);
+            }
+            if (i%7 == 0) {
+                // changePartSupplier = true;
+                ps_availqty = GenerationUtility.generateInteger();
+                ps_supplycost = GenerationUtility.generateNumber(6, 2);
+                ps_comment = GenerationUtility.generateString(100);
+            }
+            
             BasicDBObject lineitem = new BasicDBObject();
-            lineitem.append("L_orderkey", (i%5000)+1);
-            lineitem.append("L_partkey", (i%666)+1);
-            lineitem.append("L_suppkey", (i%33)+1);
             Integer is = GenerationUtility.generateInteger();
             lineitem.append("L_linenumber", is);
             is = GenerationUtility.generateInteger();
@@ -73,35 +176,89 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
             
             // partsupp
             BasicDBObject partsupp = new BasicDBObject();
+            partsupp.append("PS_availqty", ps_availqty);
+            partsupp.append("PS_supplycost", ps_supplycost);
+            partsupp.append("PS_comment", ps_comment);
             
             ///part
             BasicDBObject part = new BasicDBObject();
+            part.append("P_name", p_name);
+            part.append("P_mfgr", p_mfgr);
+            part.append("P_brand", p_brand);
+            part.append("P_type", p_type);
+            part.append("P_size", p_size);
+            part.append("P_container", p_container);
+            part.append("P_retailprice", p_retailprice);
+            part.append("P_comment", p_comment);
             
             /// supplier
             BasicDBObject supplier = new BasicDBObject();
+            supplier.append("S_name", s_name);
+            supplier.append("S_address", s_address);
+            supplier.append("S_phone", s_phone);
+            supplier.append("S_acctbal", s_acctbal);
+            supplier.append("S_comment", s_comment);
             
             //// nation
+            BasicDBObject nationSupp = new BasicDBObject();
+            nationSupp.append("N_name", n_name_supplier);
+            nationSupp.append("N_comment", n_comment_supplier);
             
             ///// region
+            BasicDBObject regionSupp = new BasicDBObject();
+            regionSupp.append("R_name", r_name_supplier);
+            regionSupp.append("R_comment", r_comment_supplier);
             
             /// order
             BasicDBObject order = new BasicDBObject();
+            order.append("O_orderstatus", o_orderstatus);
+            order.append("O_totalprice", o_totalprice);
+            order.append("O_orderdate", o_orderdate);
+            order.append("O_orderpriority", o_orderpriority);
+            order.append("O_clerk", o_clerk);
+            order.append("O_shippriority", o_shippriority);
+            order.append("O_comment", o_comment);
             
-            //// consumer
+            //// customer
+            BasicDBObject customer = new BasicDBObject();
+            customer.append("C_name", c_name);
+            customer.append("C_address", c_address);
+            customer.append("C_phone", c_phone);
+            customer.append("C_acctbal", c_acctbal);
+            customer.append("C_mktsegment", c_mktsegment);
+            customer.append("C_comment", c_comment);
             
             ///// nation
-            
+            BasicDBObject nationCust = new BasicDBObject();
+            nationCust.append("N_name", n_name_customer);
+            nationCust.append("N_comment", n_comment_customer);
+           
             ////// region
-
+            BasicDBObject regionCust = new BasicDBObject();
+            regionCust.append("R_name", r_name_customer);
+            regionCust.append("R_comment", r_comment_customer);
+            
+            nationCust.append("region", regionCust);
+            customer.append("nation", nationCust);
+            order.append("customer", customer);
+            lineitem.append("order", order);
+            
+            partsupp.append("part", part);
+            nationSupp.append("region", regionSupp);
+            supplier.append("nation", nationSupp);
+            partsupp.append("supplier", supplier);
+            lineitem.append("partsupp", partsupp);
+            
             inserts.add(lineitem);
         }
         db.getCollection("lineitem").insert(inserts);
+        */
     }
 
     @Override
     protected void secondInsertOperation() {
-        // C&P pero sumant a i +20000
-        throw new UnsupportedOperationException("Not supported yet.");
+        // equival a la primera
+        firstInsertOperation();
     }
 
     @Override
@@ -142,28 +299,6 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
         
         // run aggregation
         AggregationOutput output = lineitemCollection.aggregate( match, project, group, order );
-        
-        /*
-        // note - the collection still has the field name "dolaznaStr"
-        // but, to we access "dolaznaStr" in the aggregation command, 
-        // we add a $ sign in the BasicDBObject 
-
-        DBObject groupFields = new BasicDBObject( "_id", "$L_linestatus");
-
-        // we use the $sum operator to increment the "count" 
-        // for each unique dolaznaStr 
-        groupFields.put("count", new BasicDBObject( "$sum", 1));
-        DBObject group = new BasicDBObject("$group", groupFields );
-
-
-        // You can add a sort to order by count descending
-
-        DBObject sortFields = new BasicDBObject("count", -1);
-        DBObject sort = new BasicDBObject("$sort", sortFields );
-        
-
-        AggregationOutput output = lineitemCollection.aggregate(group);
-        */
         System.out.println( output.getCommandResult() );
         System.exit(0);
     }
