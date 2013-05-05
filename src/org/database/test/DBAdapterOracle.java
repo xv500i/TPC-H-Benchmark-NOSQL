@@ -3,7 +3,6 @@ package org.database.test;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
@@ -58,6 +57,7 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     
     private static Random r = new Random(System.currentTimeMillis());
     private Connection connection;
+    
     
     @Override
     public void connect() {
@@ -147,100 +147,6 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         System.out.println(NUM_ORDERS + " inserts order acabats");
         insertLineitems(NUM_LINEITEMS, NUM_ORDERS*2, NUM_PARTSUPPS*2);      // 20000 Lineitems (40000 Lineitems total)
         System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
-    }
-
-    /**
-     * Obtain randomly the needed parameters by the queries.
-     */
-    public void obtainQueryParameters() {
-        try {
-            Statement st;
-            ResultSet rs;
-            /* Query 1 */
-            // LINEITEM SHIPDATE
-            while (lineitemShipdate1 == null) {
-                st = connection.createStatement();
-                st.execute("SELECT l_shipdate FROM (SELECT l_shipdate FROM lineitem ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) lineitemShipdate1 = rs.getDate("l_shipdate");
-            }
-            
-            /* Query 2 */
-            // PART SIZE
-            while (partSize == null) {
-                st = connection.createStatement();
-                st.execute("SELECT p_size FROM (SELECT p_size FROM part ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) partSize = rs.getInt("p_size");
-            }
-            
-            // PART TYPE
-            while (partType == null) {
-                st = connection.createStatement();
-                st.execute("SELECT p_type FROM (SELECT p_type FROM part ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) partType = rs.getString("p_type");
-            }
-            
-            // REGION NAME
-            while (regionName1 == null) {
-                st = connection.createStatement();
-                st.execute("SELECT r_name FROM (SELECT r_name FROM region ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) regionName1 = rs.getString("r_name");
-            }
-            
-            /* Query 3 */
-            // ORDER ORDERDATE
-            while (orderOrderdate1 == null) {
-                st = connection.createStatement();
-                st.execute("SELECT o_orderdate FROM (SELECT o_orderdate FROM orders ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) orderOrderdate1 = rs.getDate("o_orderdate");
-            }
-            
-            // LINEITEM SHIPDATE
-            while (lineitemShipdate2 == null) {
-                st = connection.createStatement();
-                st.execute("SELECT l_shipdate FROM (SELECT l_shipdate FROM lineitem ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) lineitemShipdate2 = rs.getDate("l_shipdate");
-            }
-            
-            // CUSTOMER MKTSEGMENT
-            while (customerMktsegment == null) {
-                st = connection.createStatement();
-                st.execute("SELECT c_mktsegment FROM (SELECT c_mktsegment FROM customer ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) customerMktsegment = rs.getString("c_mktsegment");
-            }
-            
-            /* Query 4 */
-            // REGION NAME
-            while (regionName2 == null) {
-                st = connection.createStatement();
-                st.execute("SELECT r_name FROM (SELECT r_name FROM region ORDER BY dbms_random.value) WHERE rownum = 1");
-                rs = st.getResultSet();
-                if (rs.next()) regionName2 = rs.getString("r_name");
-            }
-            
-            // ORDER ORDERDATE
-            while (orderOrderdate2 == null || orderOrderdate3 == null) {
-                st = connection.createStatement();
-                st.execute("SELECT o_orderdate FROM (SELECT o_orderdate FROM orders ORDER BY dbms_random.value) WHERE rownum <= 2");
-                rs = st.getResultSet();
-                if (rs.next()) orderOrderdate2 = rs.getDate("o_orderdate");
-                if (rs.next()) orderOrderdate3 = rs.getDate("o_orderdate");
-            }
-            if (orderOrderdate2.after(orderOrderdate3)) {
-                Date auxDate = new Date(orderOrderdate2.getTime());
-                orderOrderdate2 = orderOrderdate3;
-                orderOrderdate3 = auxDate;
-            }
-        }
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     
     @Override
@@ -353,6 +259,100 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             ps.executeBatch();
             ps.close();
         } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Obtain randomly the needed parameters by the queries.
+     */
+    public void obtainQueryParameters() {
+        try {
+            Statement st;
+            ResultSet rs;
+            /* Query 1 */
+            // LINEITEM SHIPDATE
+            while (lineitemShipdate1 == null) {
+                st = connection.createStatement();
+                st.execute("SELECT l_shipdate FROM (SELECT l_shipdate FROM lineitem ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) lineitemShipdate1 = rs.getDate("l_shipdate");
+            }
+            
+            /* Query 2 */
+            // PART SIZE
+            while (partSize == null) {
+                st = connection.createStatement();
+                st.execute("SELECT p_size FROM (SELECT p_size FROM part ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) partSize = rs.getInt("p_size");
+            }
+            
+            // PART TYPE
+            while (partType == null) {
+                st = connection.createStatement();
+                st.execute("SELECT p_type FROM (SELECT p_type FROM part ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) partType = rs.getString("p_type");
+            }
+            
+            // REGION NAME
+            while (regionName1 == null) {
+                st = connection.createStatement();
+                st.execute("SELECT r_name FROM (SELECT r_name FROM region ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) regionName1 = rs.getString("r_name");
+            }
+            
+            /* Query 3 */
+            // ORDER ORDERDATE
+            while (orderOrderdate1 == null) {
+                st = connection.createStatement();
+                st.execute("SELECT o_orderdate FROM (SELECT o_orderdate FROM orders ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) orderOrderdate1 = rs.getDate("o_orderdate");
+            }
+            
+            // LINEITEM SHIPDATE
+            while (lineitemShipdate2 == null) {
+                st = connection.createStatement();
+                st.execute("SELECT l_shipdate FROM (SELECT l_shipdate FROM lineitem ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) lineitemShipdate2 = rs.getDate("l_shipdate");
+            }
+            
+            // CUSTOMER MKTSEGMENT
+            while (customerMktsegment == null) {
+                st = connection.createStatement();
+                st.execute("SELECT c_mktsegment FROM (SELECT c_mktsegment FROM customer ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) customerMktsegment = rs.getString("c_mktsegment");
+            }
+            
+            /* Query 4 */
+            // REGION NAME
+            while (regionName2 == null) {
+                st = connection.createStatement();
+                st.execute("SELECT r_name FROM (SELECT r_name FROM region ORDER BY dbms_random.value) WHERE rownum = 1");
+                rs = st.getResultSet();
+                if (rs.next()) regionName2 = rs.getString("r_name");
+            }
+            
+            // ORDER ORDERDATE
+            while (orderOrderdate2 == null || orderOrderdate3 == null) {
+                st = connection.createStatement();
+                st.execute("SELECT o_orderdate FROM (SELECT o_orderdate FROM orders ORDER BY dbms_random.value) WHERE rownum <= 2");
+                rs = st.getResultSet();
+                if (rs.next()) orderOrderdate2 = rs.getDate("o_orderdate");
+                if (rs.next()) orderOrderdate3 = rs.getDate("o_orderdate");
+            }
+            if (orderOrderdate2.after(orderOrderdate3)) {
+                Date auxDate = new Date(orderOrderdate2.getTime());
+                orderOrderdate2 = orderOrderdate3;
+                orderOrderdate3 = auxDate;
+            }
+        }
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
