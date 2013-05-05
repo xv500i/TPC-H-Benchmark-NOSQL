@@ -17,15 +17,32 @@ import java.util.logging.Logger;
  */
 public class DBAdapterOracle extends AbstractDBAdapter {
 
-    /* Tuples numbers */
-    private final static int NUM_REGIONS = 5;
-    private final static int NUM_NATIONS = 25;
-    private final static int NUM_PARTS = 666;
-    private final static int NUM_SUPPLIERS = 33;
-    private final static int NUM_CUSTOMERS = 500;
-    private final static int NUM_PARTSUPPS = 2666;
-    private final static int NUM_ORDERS = 5000;
+    /* Tables cardinality */
+    private final static int REGION_CARDINALITY = 5;
+    private final static int NATION_CARDINALITY = 25;
+    private final static int PART_CARDINALITY = 200000;
+    private final static int SUPPLIER_CARDINALITY = 10000;
+    private final static int CUSTOMER_CARDINALITY = 150000;
+    private final static int PARTSUPP_CARDINALITY = 800000;
+    private final static int ORDER_CARDINALITY = 1500000;
+    private final static int LINEITEM_CARDINALITY = 6000000;
+    
+    /* Num inserts */
     private final static int NUM_LINEITEMS = 20000;
+    private final static double SF = NUM_LINEITEMS/LINEITEM_CARDINALITY;
+    private final static int NUM_REGIONS = REGION_CARDINALITY;
+    private final static int NUM_NATIONS = NATION_CARDINALITY;
+    private final static int NUM_PARTS = (int)(PART_CARDINALITY*SF);
+    private final static int NUM_SUPPLIERS = (int)(SUPPLIER_CARDINALITY*SF);
+    private final static int NUM_CUSTOMERS = (int)(CUSTOMER_CARDINALITY*SF);
+    private final static int NUM_PARTSUPPS = (int)(PARTSUPP_CARDINALITY*SF);
+    private final static int NUM_ORDERS = (int)(ORDER_CARDINALITY*SF);    
+    
+    
+    /* Partsupp PKs */
+    ArrayList<ArrayList<Integer>> partsuppPK = new ArrayList<ArrayList<Integer>>(NUM_PARTSUPPS);
+    /* Lineitem PKs */
+    HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
     
     private static Random r = new Random(System.currentTimeMillis());
     private Connection connection;
@@ -73,228 +90,57 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     public void disconnect() {
         try {
             connection.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
         }
-    }
-
-
+    }    
     
     @Override
     protected void firstInsertOperation() {
-        // 5 Regions
-        try {
-            String insert = "INSERT INTO region VALUES(?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_REGIONS; i++) {
-                ps.setInt(1, i + 1); // [1,NUM_REGIONS]
-                setPreparedStatementString(ps, 2, 64/2);
-                setPreparedStatementString(ps, 3, 160/2);
-                setPreparedStatementString(ps, 4, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertRegions(NUM_REGIONS, 1);                              // 5 Regions
         System.out.println(NUM_REGIONS + " inserts region acabats");
-        // 25 Nations
-        try {
-            String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_NATIONS; i++) {
-                ps.setInt(1, i + 1); // [1,NUM_NATIONS]
-                setPreparedStatementString(ps, 2, 64/2);
-                ps.setInt(3, 1 + r.nextInt(NUM_REGIONS));   // FK Region
-                setPreparedStatementString(ps, 4, 160/2);
-                setPreparedStatementString(ps, 5, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertNations(NUM_NATIONS, 1, NUM_REGIONS);                 // 25 Nations
         System.out.println(NUM_NATIONS + " inserts nation acabats");
-        // 666 Parts
-        try {
-            String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_PARTS; i++) {
-                ps.setInt(1, i + 1); // [1,NUM_PARTS]
-                setPreparedStatementString(ps, 2, 64/2);
-                setPreparedStatementString(ps, 3, 64/2);
-                setPreparedStatementString(ps, 4, 64/2);
-                setPreparedStatementString(ps, 5, 64/2);
-                setPreparedStatementInteger(ps, 6);
-                setPreparedStatementString(ps, 7, 64/2);
-                setPreparedStatementNumber(ps, 8, 13/2, 2);
-                setPreparedStatementString(ps, 9, 64/2);
-                setPreparedStatementString(ps, 10, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertParts(NUM_PARTS, 1);                                  // 666 Parts
         System.out.println(NUM_PARTS + " inserts part acabats");
-        // 33 Suppliers
-        try {
-            String insert = "INSERT INTO supplier VALUES(?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_SUPPLIERS; i++) {
-                ps.setInt(1, i + 1); // [1,NUM_SUPPLIERS]
-                setPreparedStatementString(ps, 2, 64/2);
-                setPreparedStatementString(ps, 3, 64/2);
-                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));   // FK Nation
-                setPreparedStatementString(ps, 5, 18/2);
-                setPreparedStatementNumber(ps, 6, 13/2, 2);
-                setPreparedStatementString(ps, 7, 105/2);
-                setPreparedStatementString(ps, 8, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertSuppliers(NUM_SUPPLIERS, 1, NUM_NATIONS);             // 33 Suppliers
         System.out.println(NUM_SUPPLIERS + " inserts supplier acabats");
-        // 500 Customers
-        try {
-            String insert = "INSERT INTO customer VALUES(?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_CUSTOMERS; i++) {
-                ps.setInt(1, i + 1); // [1,NUM_CUSTOMERS]
-                setPreparedStatementString(ps, 2, 64/2);
-                setPreparedStatementString(ps, 3, 64/2);
-                ps.setInt(4, 1 + r.nextInt(NUM_NATIONS));   // FK Nation
-                setPreparedStatementString(ps, 5, 64/2);
-                setPreparedStatementNumber(ps, 6, 13/2, 2);
-                setPreparedStatementString(ps, 7, 64/2);
-                setPreparedStatementString(ps, 8, 120/2);
-                setPreparedStatementString(ps, 9, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertCustomers(NUM_CUSTOMERS, 1, NUM_NATIONS);             // 500 Customers
         System.out.println(NUM_CUSTOMERS + " inserts customer acabats");
-        // 2666 Partsupps
-        ArrayList<ArrayList<Integer>> partsuppPK = new ArrayList<ArrayList<Integer>>(NUM_PARTSUPPS);
-        try {
-            ArrayList<Integer> pk;
-            int part, supplier;
-            String insert = "INSERT INTO partsupp VALUES(?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_PARTSUPPS; i++) {
-                do {
-                    pk = new ArrayList<Integer>(2);
-                    part = 1 + r.nextInt(NUM_PARTS);            // FK Part
-                    supplier = 1 + r.nextInt(NUM_SUPPLIERS);    // FK Supplier
-                    pk.add(part);
-                    pk.add(supplier);
-                } while (partsuppPK.contains(pk));
-                partsuppPK.add(pk);
-                ps.setInt(1, part);
-                ps.setInt(2, supplier);
-                setPreparedStatementInteger(ps, 3);
-                setPreparedStatementNumber(ps, 4, 13/2, 2);
-                setPreparedStatementString(ps, 5, 200/2);
-                setPreparedStatementString(ps, 6, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertPartsupps(NUM_PARTSUPPS, NUM_PARTS, NUM_SUPPLIERS);   // 2666 Partsupps
         System.out.println(NUM_PARTSUPPS + " inserts partsupp acabats");
-        // 5000 Orders
-        try {
-            String insert = "INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_ORDERS; i++) {
-                ps.setInt(1, i + 1); // [1,NUM_ORDERS]
-                ps.setInt(2, 1 + r.nextInt(NUM_CUSTOMERS)); // FK Customer
-                setPreparedStatementString(ps, 3, 64/2);
-                setPreparedStatementNumber(ps, 4, 13/2, 2);
-                setPreparedStatementDate(ps, 5);
-                setPreparedStatementString(ps, 6, 15/2);
-                setPreparedStatementString(ps, 7, 64/2);
-                setPreparedStatementInteger(ps, 8);
-                setPreparedStatementString(ps, 9, 80/2);
-                setPreparedStatementString(ps, 10, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertOrders(NUM_ORDERS, 1, NUM_CUSTOMERS);                 // 5000 Orders
         System.out.println(NUM_ORDERS + " inserts order acabats");
-        // 20000 Lineitems
-        HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
-        try {
-            ArrayList<Integer> pk;
-            int order, linenumber;
-            String insert = "INSERT INTO lineitem VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < NUM_LINEITEMS; i++) {
-                do {
-                    pk = new ArrayList<Integer>(2);
-                    order = 1 + r.nextInt(NUM_ORDERS);  // FK Order
-                    linenumber = r.nextInt();
-                    pk.add(order);
-                    pk.add(linenumber);
-                } while (lineitemPK.contains(pk));
-                lineitemPK.add(pk);
-                ps.setInt(1, order);
-                int index = r.nextInt(NUM_PARTSUPPS);   // FK Partsupp
-                ps.setInt(2, partsuppPK.get(index).get(0));
-                ps.setInt(3, partsuppPK.get(index).get(1));
-                ps.setInt(4, linenumber);
-                setPreparedStatementInteger(ps, 5);
-                setPreparedStatementNumber(ps, 6, 13/2, 2);
-                setPreparedStatementNumber(ps, 7, 13/2, 2);
-                setPreparedStatementNumber(ps, 8, 13/2, 2);
-                setPreparedStatementString(ps, 9, 64/2);
-                setPreparedStatementString(ps, 10, 64/2);
-                setPreparedStatementDate(ps, 11);
-                setPreparedStatementDate(ps, 12);
-                setPreparedStatementDate(ps, 13);
-                setPreparedStatementString(ps, 14, 64/2);
-                setPreparedStatementString(ps, 15, 64/2);
-                setPreparedStatementString(ps, 16, 64/2);
-                setPreparedStatementString(ps, 17, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        insertLineitems(NUM_LINEITEMS, NUM_ORDERS, NUM_PARTSUPPS);  // 20000 Lineitems
         System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
     }
 
     @Override
     protected void secondInsertOperation() {
-        // C&P del 1 pero sumant +20000 als indexos
-        throw new UnsupportedOperationException("Not supported yet.");
+        insertRegions(NUM_REGIONS, NUM_REGIONS + 1);                        // 5 Regions (10 Regions total)
+        System.out.println(NUM_REGIONS + " inserts region acabats");
+        insertNations(NUM_NATIONS, NUM_NATIONS + 1, NUM_REGIONS*2);         // 25 Nations (50 Nations total)
+        System.out.println(NUM_NATIONS + " inserts nation acabats");
+        insertParts(NUM_PARTS, 1);                                          // 666 Parts (1332 Parts total)
+        System.out.println(NUM_PARTS + " inserts part acabats");
+        insertSuppliers(NUM_SUPPLIERS, NUM_SUPPLIERS + 1, NUM_NATIONS*2);   // 33 Suppliers (66 Suppliers total)
+        System.out.println(NUM_SUPPLIERS + " inserts supplier acabats");
+        insertCustomers(NUM_CUSTOMERS, NUM_CUSTOMERS + 1, NUM_NATIONS*2);   // 500 Customers (1000 Customers total)
+        System.out.println(NUM_CUSTOMERS + " inserts customer acabats");
+        insertPartsupps(NUM_PARTSUPPS, NUM_PARTS*2, NUM_SUPPLIERS*2);       // 2666 Partsupps (5332 Partsupps total)
+        System.out.println(NUM_PARTSUPPS + " inserts partsupp acabats");
+        insertOrders(NUM_ORDERS, NUM_ORDERS + 1, NUM_CUSTOMERS*2);          // 5000 Orders (10000 Orders total)
+        System.out.println(NUM_ORDERS + " inserts order acabats");
+        insertLineitems(NUM_LINEITEMS, NUM_ORDERS*2, NUM_PARTSUPPS*2);      // 20000 Lineitems (40000 Lineitems total)
+        System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
     }
 
+    public void obtainQueryParameters() {
+        
+    }
+    
     @Override
     public void doQuery1() {
         try {
@@ -323,19 +169,19 @@ public class DBAdapterOracle extends AbstractDBAdapter {
             String size = "2000"; // MUST EXIST
             String type = "A";
             String region = "Qaoxp"; 
-            boolean execute = st.execute(
+            st.execute(
                 "SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment "
               + "FROM part, supplier, partsupp, nation, region "
-              + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = " + size + " AND p_type like '%" + type + "' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "' AND ps_supplycost = (SELECT min(ps_supplycost) FROM partsupp, supplier, nation, region WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "')"
-              + "ORDER BY s_acctbal desc, n_name, s_name, p_partkey;");
-            if (execute) {
-                ResultSet resultSet = st.getResultSet();
-                System.out.println("Q2 returned " + resultSet.getFetchSize() + " rows.");
-                resultSet.close();
-            } else {
-                System.out.println("Q2 returned " + 0 + " rows.");
-            }
-        } catch (SQLException ex) {
+              + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = " + size + " " 
+              + "AND p_type like '%" + type + "' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey "
+              + "AND r_name = '" + region + "' AND ps_supplycost = "
+                  + "(SELECT min(ps_supplycost) "
+                  + "FROM partsupp, supplier, nation, region "
+                  + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey "
+                  + "AND n_regionkey = r_regionkey AND r_name = '" + region + "') "
+              + "ORDER BY s_acctbal desc, n_name, s_name, p_partkey");
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -388,6 +234,217 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         }
     }
     
+    
+    /* Inserting methods */
+    private void insertRegions(int numInserts, int firstInsertPK) {
+        try {
+            String insert = "INSERT INTO region VALUES(?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 160/2);
+                setPreparedStatementString(ps, 4, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
+        try {
+            String insert = "INSERT INTO nation VALUES(?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                ps.setInt(3, 1 + r.nextInt(numRegions));    // FK Region
+                setPreparedStatementString(ps, 4, 160/2);
+                setPreparedStatementString(ps, 5, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertParts(int numInserts, int firstInsertPK) {
+        try {
+            String insert = "INSERT INTO part VALUES(?,?,?,?,?,?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 64/2);
+                setPreparedStatementString(ps, 4, 64/2);
+                setPreparedStatementString(ps, 5, 64/2);
+                setPreparedStatementInteger(ps, 6);
+                setPreparedStatementString(ps, 7, 64/2);
+                setPreparedStatementNumber(ps, 8, 13/2, 2);
+                setPreparedStatementString(ps, 9, 64/2);
+                setPreparedStatementString(ps, 10, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertSuppliers(int numInserts, int firstInsertPK, int numNations) {
+        try {
+            String insert = "INSERT INTO supplier VALUES(?,?,?,?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 64/2);
+                ps.setInt(4, 1 + r.nextInt(numNations));    // FK Nation
+                setPreparedStatementString(ps, 5, 18/2);
+                setPreparedStatementNumber(ps, 6, 13/2, 2);
+                setPreparedStatementString(ps, 7, 105/2);
+                setPreparedStatementString(ps, 8, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertCustomers(int numInserts, int firstInsertPK, int numNations) {
+        try {
+            String insert = "INSERT INTO customer VALUES(?,?,?,?,?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK
+                setPreparedStatementString(ps, 2, 64/2);
+                setPreparedStatementString(ps, 3, 64/2);
+                ps.setInt(4, 1 + r.nextInt(numNations));    // FK Nation
+                setPreparedStatementString(ps, 5, 64/2);
+                setPreparedStatementNumber(ps, 6, 13/2, 2);
+                setPreparedStatementString(ps, 7, 64/2);
+                setPreparedStatementString(ps, 8, 120/2);
+                setPreparedStatementString(ps, 9, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertPartsupps(int numInserts, int numParts, int numSuppliers) {
+        try {
+            ArrayList<Integer> pk;
+            int part, supplier;
+            String insert = "INSERT INTO partsupp VALUES(?,?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                do {
+                    pk = new ArrayList<Integer>(2);
+                    part = 1 + r.nextInt(numParts);             
+                    supplier = 1 + r.nextInt(numSuppliers);     
+                    pk.add(part);
+                    pk.add(supplier);
+                } while (partsuppPK.contains(pk));
+                partsuppPK.add(pk);
+                ps.setInt(1, part);                             // PK (and FK Part)
+                ps.setInt(2, supplier);                         // PK (and FK Supplier)
+                setPreparedStatementInteger(ps, 3);
+                setPreparedStatementNumber(ps, 4, 13/2, 2);
+                setPreparedStatementString(ps, 5, 200/2);
+                setPreparedStatementString(ps, 6, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertOrders(int numInserts, int firstInsertPK, int numCustomers) {
+        try {
+            String insert = "INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                ps.setInt(1, firstInsertPK + i);            // PK   
+                ps.setInt(2, 1 + r.nextInt(numCustomers));  // FK Customer
+                setPreparedStatementString(ps, 3, 64/2);
+                setPreparedStatementNumber(ps, 4, 13/2, 2);
+                setPreparedStatementDate(ps, 5);
+                setPreparedStatementString(ps, 6, 15/2);
+                setPreparedStatementString(ps, 7, 64/2);
+                setPreparedStatementInteger(ps, 8);
+                setPreparedStatementString(ps, 9, 80/2);
+                setPreparedStatementString(ps, 10, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void insertLineitems(int numInserts, int numOrders, int numPartsupps) {
+        try {
+            ArrayList<Integer> pk;
+            int order, linenumber;
+            String insert = "INSERT INTO lineitem VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            PreparedStatement ps = connection.prepareStatement(insert);
+            for (int i = 0; i < numInserts; i++) {
+                do {
+                    pk = new ArrayList<Integer>(2);
+                    order = 1 + r.nextInt(numOrders);      
+                    linenumber = r.nextInt(Integer.MAX_VALUE);
+                    pk.add(order);
+                    pk.add(linenumber);
+                } while (lineitemPK.contains(pk));
+                lineitemPK.add(pk);
+                ps.setInt(1, order);                        // PK (and FK Order)
+                int index = r.nextInt(numPartsupps);        // FK Partsupp
+                ps.setInt(2, partsuppPK.get(index).get(0));
+                ps.setInt(3, partsuppPK.get(index).get(1));
+                ps.setInt(4, linenumber);                   // PK
+                setPreparedStatementInteger(ps, 5);
+                setPreparedStatementNumber(ps, 6, 13/2, 2);
+                setPreparedStatementNumber(ps, 7, 13/2, 2);
+                setPreparedStatementNumber(ps, 8, 13/2, 2);
+                setPreparedStatementString(ps, 9, 64/2);
+                setPreparedStatementString(ps, 10, 64/2);
+                setPreparedStatementDate(ps, 11);
+                setPreparedStatementDate(ps, 12);
+                setPreparedStatementDate(ps, 13);
+                setPreparedStatementString(ps, 14, 64/2);
+                setPreparedStatementString(ps, 15, 64/2);
+                setPreparedStatementString(ps, 16, 64/2);
+                setPreparedStatementString(ps, 17, 64/2);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
     /* Utility methods for adding randoms to preparedStatement */
     private void setPreparedStatementString(PreparedStatement ps, int index, int stringLength) throws SQLException {

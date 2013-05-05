@@ -23,7 +23,10 @@ public class Main {
         /*time = adapter.insertFirstBulk();
         System.out.println("First bulk insert time = " + time);*/
         
-        // Execute Query 1
+        // OBTAIN REQUIRED PARAMETERS FOR THE QUERIES
+        ((DBAdapterOracle)adapter).obtainQueryParameters();
+        
+        // QUERY 1
         time = Float.MAX_VALUE;
         for (int i = 0; i < 5; i++) {
             time = Math.min(time, adapter.executeQuery1());
