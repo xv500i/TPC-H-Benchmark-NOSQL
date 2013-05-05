@@ -44,6 +44,18 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     /* Lineitem PKs */
     HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
     
+    /* Needed query parameters */
+    Date lineitemShipdate1;
+    int partSize;
+    String partType;
+    String regionName1;
+    String customerMktsegment;
+    Date orderOrderdate1;
+    Date lineitemShipdate2;
+    String regionName2;
+    Date orderOrderdate2;
+    Date orderOrderdate3;
+    
     private static Random r = new Random(System.currentTimeMillis());
     private Connection connection;
     
@@ -137,25 +149,92 @@ public class DBAdapterOracle extends AbstractDBAdapter {
         System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
     }
 
+    /**
+     * Obtain randomly the needed parameters by the queries.
+     */
     public void obtainQueryParameters() {
-        
+        try {
+            /* Query 1 */
+            // LINEITEM SHIPDATE
+            Statement st = connection.createStatement();
+            st.execute("SELECT l_shipdate FROM (SELECT l_shipdate FROM lineitem ORDER BY dbms_random.value) WHERE rownum = 1");
+            ResultSet rs = st.getResultSet();
+            if (rs.next()) lineitemShipdate1 = rs.getDate("l_shipdate");
+            
+            /* Query 2 */
+            // PART SIZE
+            st = connection.createStatement();
+            st.execute("SELECT p_size FROM (SELECT p_size FROM part ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) partSize = rs.getInt("p_size");
+            
+            // PART TYPE
+            st = connection.createStatement();
+            st.execute("SELECT p_type FROM (SELECT p_type FROM part ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) partType = rs.getString("p_type");
+            
+            // REGION NAME
+            st = connection.createStatement();
+            st.execute("SELECT r_name FROM (SELECT r_name FROM region ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) regionName1 = rs.getString("r_name");
+            
+            /* Query 3 */
+            // ORDER ORDERDATE
+            st = connection.createStatement();
+            st.execute("SELECT o_orderdate FROM (SELECT o_orderdate FROM orders ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) orderOrderdate1 = rs.getDate("o_orderdate");
+            
+            // LINEITEM SHIPDATE
+            st = connection.createStatement();
+            st.execute("SELECT l_shipdate FROM (SELECT l_shipdate FROM lineitem ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) lineitemShipdate2 = rs.getDate("l_shipdate");
+            
+            // CUSTOMER MKTSEGMENT
+            st = connection.createStatement();
+            st.execute("SELECT c_mktsegment FROM (SELECT c_mktsegment FROM customer ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) customerMktsegment = rs.getString("c_mktsegment");
+            
+            /* Query 4 */
+            // REGION NAME
+            st = connection.createStatement();
+            st.execute("SELECT r_name FROM (SELECT r_name FROM region ORDER BY dbms_random.value) WHERE rownum = 1");
+            rs = st.getResultSet();
+            if (rs.next()) regionName2 = rs.getString("r_name");
+            
+            // ORDER ORDERDATE
+            st = connection.createStatement();
+            st.execute("SELECT o_orderdate FROM (SELECT o_orderdate FROM orders ORDER BY dbms_random.value) WHERE rownum = 1 OR rownum = 2");
+            rs = st.getResultSet();
+            if (rs.next()) orderOrderdate2 = rs.getDate("o_orderdate");
+            if (rs.next()) orderOrderdate3 = rs.getDate("o_orderdate");
+            if (orderOrderdate2.after(orderOrderdate3)) {
+                Date auxDate = new Date(orderOrderdate2.getTime());
+                orderOrderdate2 = orderOrderdate3;
+                orderOrderdate3 = auxDate;
+            }
+        }
+        catch (SQLException ex) {
+            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @Override
     public void doQuery1() {
         try {
             Statement st = connection.createStatement();
-            Date date = null;
-            while (date == null) date = GenerationUtility.generateDate();
             st.execute(
                 "SELECT l_returnflag, l_linestatus, SUM(l_quantity) AS sum_qty, SUM(l_extendedprice) AS sum_base_price, "
                         + "SUM(l_extendedprice*(1-l_discount)) AS sum_disc_price, SUM(l_extendedprice*(1-l_discount)*(1+l_tax)) AS sum_charge, "
                         + "AVG(l_quantity) AS avg_qty, AVG(l_extendedprice) AS avg_price, AVG(l_discount) AS avg_disc, COUNT(*) as count_order "
               + "FROM lineitem "
-              + "WHERE l_shipdate <= '" + getDateString(date) + "' " 
+              + "WHERE l_shipdate <= '" + getDateString(lineitemShipdate1) + "' " 
               + "GROUP BY l_returnflag, l_linestatus "
-              + "ORDER BY l_returnflag, l_linestatus"
-            );
+              + "ORDER BY l_returnflag, l_linestatus");
         } 
         catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
@@ -166,19 +245,16 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     public void doQuery2() {
         try {
             Statement st = connection.createStatement();
-            String size = "2000"; // MUST EXIST
-            String type = "A";
-            String region = "Qaoxp"; 
             st.execute(
                 "SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment "
               + "FROM part, supplier, partsupp, nation, region "
-              + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = " + size + " " 
-              + "AND p_type like '%" + type + "' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey "
-              + "AND r_name = '" + region + "' AND ps_supplycost = "
+              + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = " + partSize + " " 
+              + "AND p_type like '%" + partType + "' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey "
+              + "AND r_name = '" + regionName1 + "' AND ps_supplycost = "
                   + "(SELECT min(ps_supplycost) "
                   + "FROM partsupp, supplier, nation, region "
                   + "WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey "
-                  + "AND n_regionkey = r_regionkey AND r_name = '" + region + "') "
+                  + "AND n_regionkey = r_regionkey AND r_name = '" + regionName1 + "') "
               + "ORDER BY s_acctbal desc, n_name, s_name, p_partkey");
         } 
         catch (SQLException ex) {
@@ -190,22 +266,15 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     public void doQuery3() {
         try {
             Statement st = connection.createStatement();
-            String segment = "QpsoiE";
-            String date1 = "300-00-00";
-            String date2 = "500-6-27";
-            boolean execute = st.execute("SELECT l_orderkey, sum(l_extendedprice*(1-l_discount)) as revenue, o_orderdate, o_shippriority"
-                +"FROM customer, orders, lineitem"
-                +"WHERE c_mktsegment = '" + segment + "' AND c_custkey = o_custkey AND l_orderkey = o_orderkey AND o_orderdate < '" + date1 + "' AND l_shipdate > '" + date2 + "'"
-                +"GROUP BY l_orderkey, o_orderdate, o_shippriority"
-                +"ORDER BY revenue desc, o_orderdate;");
-            if (execute) {
-                ResultSet resultSet = st.getResultSet();
-                System.out.println("Q3 returned " + resultSet.getFetchSize() + " rows.");
-                resultSet.close();
-            } else {
-                System.out.println("Q3 returned " + 0 + " rows.");
-            }
-        } catch (SQLException ex) {
+            st.execute(
+                "SELECT l_orderkey, sum(l_extendedprice*(1-l_discount)) as revenue, o_orderdate, o_shippriority "
+              + "FROM customer, orders, lineitem "
+              + "WHERE c_mktsegment = '" + customerMktsegment + "' AND c_custkey = o_custkey AND l_orderkey = o_orderkey "
+              + "AND o_orderdate < '" + getDateString(orderOrderdate1) + "' AND l_shipdate > '" + getDateString(lineitemShipdate2) + "' "
+              + "GROUP BY l_orderkey, o_orderdate, o_shippriority "
+              + "ORDER BY revenue desc, o_orderdate"); 
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -214,22 +283,16 @@ public class DBAdapterOracle extends AbstractDBAdapter {
     public void doQuery4() {
         try {
             Statement st = connection.createStatement();
-            String region = "QpsoiE";
-            String date1 = "300-00-00";
-            String date2 = "500-6-27";
-            boolean execute = st.execute("SELECT n_name, sum(l_extendedprice * (1 - l_discount)) as revenue"
-                +"FROM customer, orders, lineitem, supplier, nation, region"
-                +"WHERE c_custkey = o_custkey AND l_orderkey = o_orderkey AND l_suppkey = s_suppkey AND c_nationkey = s_nationkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + region + "' AND o_orderdate >= date '" + date1 + "' AND o_orderdate < date '" + date2 + "' + interval '1' year"
-                +"GROUP BY n_name"
-                +"ORDER BY revenue desc;");
-            if (execute) {
-                ResultSet resultSet = st.getResultSet();
-                System.out.println("Q4 returned " + resultSet.getFetchSize() + " rows.");
-                resultSet.close();
-            } else {
-                System.out.println("Q4 returned " + 0 + " rows.");
-            }
-        } catch (SQLException ex) {
+            st.execute(
+                "SELECT n_name, sum(l_extendedprice * (1 - l_discount)) as revenue "
+              + "FROM customer, orders, lineitem, supplier, nation, region "
+              + "WHERE c_custkey = o_custkey AND l_orderkey = o_orderkey AND l_suppkey = s_suppkey AND c_nationkey = s_nationkey "
+              + "AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = '" + regionName2 + "' "
+              + "AND o_orderdate >= date '" + getDateString(orderOrderdate2) + "' AND o_orderdate < date '" + getDateString(orderOrderdate3) + "' + interval '1' year "
+              + "GROUP BY n_name "
+              + "ORDER BY revenue DESC");
+        } 
+        catch (SQLException ex) {
             Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
