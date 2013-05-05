@@ -28,10 +28,23 @@ public class Main {
         
         // QUERY 1
         time = Float.MAX_VALUE;
-        for (int i = 0; i < 5; i++) {
-            time = Math.min(time, adapter.executeQuery1());
-        }
+        for (int i = 0; i < 5; i++) time = Math.min(time, adapter.executeQuery1());
         System.out.println("Query1 time = " + time);
+        
+        // QUERY 2
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = Math.min(time, adapter.executeQuery2());
+        System.out.println("Query2 time = " + time);
+        
+        // QUERY 3
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = Math.min(time, adapter.executeQuery3());
+        System.out.println("Query3 time = " + time);
+        
+        // QUERY 4
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = Math.min(time, adapter.executeQuery4());
+        System.out.println("Query4 time = " + time);
     }
     
     public static void mongoDBExecution() {
