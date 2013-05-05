@@ -307,9 +307,50 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
 
     @Override
     public void doQuery2() {
-        /*
-        throw new UnsupportedOperationException("Not supported yet.");
-        * */
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        Integer size = 203032;
+        String type = "/A$/"; // regex
+        String regionName = "ADSaIKAGo";
+        DBObject where = new BasicDBObject();
+        where.put("$partsupp.part.P_type", type);
+        where.put("$partsupp.part.P_size", size);
+        where.put("$supplier.nation.region.R_name", regionName);
+        DBObject match = new BasicDBObject("$match", where );
+
+        // Now the $group operation
+        DBObject groupBy = new BasicDBObject();
+        groupBy.put("S_acctbal", "$partsupp.supply.S_acctbal");
+        groupBy.put("S_name", "$partsupp.supply.S_name");
+        groupBy.put("N_name", "$partsupp.supply.nation.N_name");
+        groupBy.put("P_mfgr", "$partsupp.part.P_mfgr");
+        groupBy.put("S_address", "$partsupp.supply.S_address");
+        groupBy.put("S_phone", "$partsupp.supply.S_phone");
+        groupBy.put("S_comment", "$partsupp.supply.S_comment");
+        DBObject groupFields = new BasicDBObject("_id", groupBy);
+        DBObject group = new BasicDBObject("$group", groupFields);
+        
+        // build the $projection operation
+        
+        DBObject fields = new BasicDBObject("_id", 0);
+        fields.put("S_acctbal", 1);
+        fields.put("S_name", 1);
+        fields.put("N_name", 1);
+        fields.put("P_mfgr", 1);
+        fields.put("S_address", 1);
+        fields.put("S_phone", 1);
+        fields.put("S_comment", 1);
+        DBObject project = new BasicDBObject("$project", fields );
+        
+        // order by
+        DBObject orderClause = new BasicDBObject("S_acctbal", -1);
+        orderClause.put("N_name", 1);
+        orderClause.put("S_name", 1);
+        DBObject orderby = new BasicDBObject("$sort", orderClause);
+        
+        // run aggregation
+        AggregationOutput output = lineitemCollection.aggregate( match, group, project, orderby );
+        System.out.println( output.getCommandResult() );
+        System.exit(0);
     }
 
     @Override
