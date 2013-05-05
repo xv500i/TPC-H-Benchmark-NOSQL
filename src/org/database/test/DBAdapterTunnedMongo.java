@@ -46,7 +46,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
 
     @Override
     protected void firstInsertOperation() {
-        /*
+        
         List<DBObject> inserts;
         inserts = new ArrayList<>();
         
@@ -253,7 +253,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
             inserts.add(lineitem);
         }
         db.getCollection("lineitem").insert(inserts);
-        */
+        
     }
 
     @Override
@@ -264,7 +264,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
 
     @Override
     public void doQuery1() {
-        /*
+        
         DBCollection lineitemCollection = db.getCollection("lineitem");
         
         DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", new java.util.Date())) );
@@ -302,7 +302,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
         // run aggregation
         AggregationOutput output = lineitemCollection.aggregate( match, project, group, order );
         System.out.println( output.getCommandResult() );
-        */
+        
     }
 
     @Override
@@ -350,12 +350,11 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
         // run aggregation
         AggregationOutput output = lineitemCollection.aggregate( match, group, project, orderby );
         System.out.println( output.getCommandResult() );
-        System.exit(0);
     }
 
     @Override
     public void doQuery3() {
-        /*
+        
         DBCollection lineitemCollection = db.getCollection("lineitem");
         java.util.Date date1 = new java.util.Date();
         java.util.Date date2 = new java.util.Date();
@@ -393,7 +392,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
         // run aggregation
         AggregationOutput output = lineitemCollection.aggregate( match, group, project, orderby );
         System.out.println( output.getCommandResult() );
-        */
+        
     }
 
     @Override
@@ -430,7 +429,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
         // run aggregation
         AggregationOutput output = lineitemCollection.aggregate( match, group, project, orderby );
         System.out.println( output.getCommandResult() );
-        System.exit(0);
+        
     }
 
 }
