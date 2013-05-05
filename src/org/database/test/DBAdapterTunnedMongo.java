@@ -11,6 +11,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -263,6 +264,7 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
 
     @Override
     public void doQuery1() {
+        /*
         DBCollection lineitemCollection = db.getCollection("lineitem");
         
         DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", new java.util.Date())) );
@@ -300,22 +302,94 @@ public class DBAdapterTunnedMongo extends AbstractDBAdapter{
         // run aggregation
         AggregationOutput output = lineitemCollection.aggregate( match, project, group, order );
         System.out.println( output.getCommandResult() );
-        System.exit(0);
+        */
     }
 
     @Override
     public void doQuery2() {
+        /*
         throw new UnsupportedOperationException("Not supported yet.");
+        * */
     }
 
     @Override
     public void doQuery3() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        /*
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        java.util.Date date1 = new java.util.Date();
+        java.util.Date date2 = new java.util.Date();
+        String mktsegment = "leaoLADSk";
+        DBObject where = new BasicDBObject();
+        where.put("L_shipdate", new BasicDBObject("$gt", date2));
+        DBObject order = new BasicDBObject(new BasicDBObject ("customer" , new BasicDBObject("C_mktsegment", mktsegment)));
+        order.put("O_orderdate", new BasicDBObject("$lt", date1));
+        where.put("order", order);
+        DBObject match = new BasicDBObject("$match", where );
+
+        // Now the $group operation
+        DBObject groupBy = new BasicDBObject();
+        groupBy.put("L_orderkey", "$_id");
+        groupBy.put("O_orderdate", "$order.O_orderdate");
+        groupBy.put("O_shippriority", "$order.O_shippriority");
+        DBObject groupFields = new BasicDBObject("_id", groupBy);
+        groupFields.put("revenue", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)"));
+        DBObject group = new BasicDBObject("$group", groupFields);
+        
+        // build the $projection operation
+        
+        DBObject fields = new BasicDBObject("_id", 1);
+        fields.put("L_orderkey", 1);
+        fields.put("O_orderdate", 1);
+        fields.put("O_shippriority", 1);
+        fields.put("revenue", 1);
+        DBObject project = new BasicDBObject("$project", fields );
+        
+        // order by
+        DBObject orderClause = new BasicDBObject("revenue", -1);
+        orderClause.put("O_orderdate", 1);
+        DBObject orderby = new BasicDBObject("$sort", orderClause);
+        
+        // run aggregation
+        AggregationOutput output = lineitemCollection.aggregate( match, group, project, orderby );
+        System.out.println( output.getCommandResult() );
+        */
     }
 
     @Override
     public void doQuery4() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        java.util.Date date = new java.util.Date();
+        String regionName = "ADSaIKAGo";
+        DBObject where = new BasicDBObject();
+        java.util.Date aux = new java.util.Date(date.getTime());
+        aux.setYear(aux.getYear()+1);
+        where.put("$supplier.nation.region.R_name", regionName);
+        where.put("$order.O_orderdate", new BasicDBObject("$gt", date));
+        where.put("$order.O_orderdate", new BasicDBObject("$lt", aux));
+        DBObject match = new BasicDBObject("$match", where );
+
+        // Now the $group operation
+        DBObject groupBy = new BasicDBObject();
+        groupBy.put("N_name", "$partsupp.supplier.nation.N_name");
+        DBObject groupFields = new BasicDBObject("_id", groupBy);
+        groupFields.put("revenue", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)"));
+        DBObject group = new BasicDBObject("$group", groupFields);
+        
+        // build the $projection operation
+        
+        DBObject fields = new BasicDBObject("_id", 0);
+        fields.put("N_name", 1);
+        fields.put("revenue", 1);
+        DBObject project = new BasicDBObject("$project", fields );
+        
+        // order by
+        DBObject orderClause = new BasicDBObject("revenue", -1);
+        DBObject orderby = new BasicDBObject("$sort", orderClause);
+        
+        // run aggregation
+        AggregationOutput output = lineitemCollection.aggregate( match, group, project, orderby );
+        System.out.println( output.getCommandResult() );
+        System.exit(0);
     }
 
 }
