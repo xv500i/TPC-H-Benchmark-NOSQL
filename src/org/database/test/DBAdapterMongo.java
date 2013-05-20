@@ -14,6 +14,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -386,12 +387,98 @@ public class DBAdapterMongo extends AbstractDBAdapter {
 
     @Override
     public void doQuery2() {
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        
+        DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", new java.util.Date())) );
+        // build the $projection operation
+        
+        DBObject fields = new BasicDBObject("L_returnflag", 1);
+        fields.put("L_linestatus", 1);
+        fields.put("L_quantity", 1);
+        fields.put("L_extendedprice", 1);
+        fields.put("L_discount", 1);
+        fields.put("L_tax", 1);
+        fields.put("_id", 0);
+        DBObject project = new BasicDBObject("$project", fields );
 
+        // Now the $group operation
+        DBObject groupBy = new BasicDBObject();
+        groupBy.put("L_returnflag", "$L_returnflag");
+        groupBy.put("L_linestatus", "$L_linestatus");
+        DBObject groupFields = new BasicDBObject("_id", groupBy);
+        groupFields.put("sum_qty", new BasicDBObject("$sum", "$L_quantity"));
+        groupFields.put("sum_base_price", new BasicDBObject("$sum", "$L_extendedprice"));
+        groupFields.put("sum_disc_price", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)"));
+        groupFields.put("sum_charge", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)*(1-$L_tax)"));
+        groupFields.put("avg_qty", new BasicDBObject("$avg", "$L_quantity"));
+        groupFields.put("avg_extendedprice", new BasicDBObject("$avg", "$L_extendedprice"));
+        groupFields.put("avg_discount", new BasicDBObject("$avg", "$L_discount"));
+        groupFields.put("count_order", new BasicDBObject("$sum", 1));
+        DBObject group = new BasicDBObject("$group", groupFields);
+        
+        // order by
+        DBObject orderClause = new BasicDBObject("L_returnflag", 1);
+        orderClause.put("L_linestatus", 1);
+        DBObject order = new BasicDBObject("$sort", orderClause);
+        
+        // run aggregation
+        AggregationOutput output = lineitemCollection.aggregate( match, project, group, order );
+        System.out.println( output.getCommandResult() );
     }
 
     @Override
     public void doQuery3() {
-
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        DBCollection orderCollection = db.getCollection("order");
+        DBCollection customerCollection = db.getCollection("customer");
+        String mktsegment = "gmnTRTVqCJsgMtcUjqJQCJWbMrohaXIu";
+        java.util.Date date1  = new Date();
+        java.util.Date date2 = new Date();
+        date2.setYear(2013 - 1900);
+        date1.setYear(2012 - 1900);
+        ArrayList<Object []> select = new ArrayList<>();
+        // l_orderkey, l_extendedprice, l_discount, o_orderdate, o_shippriority
+        
+        DBObject match = new BasicDBObject("C_mktsegment", mktsegment);
+        DBObject fields = new BasicDBObject();
+        fields.put("_id", 1);
+        DBCursor customersMatched = customerCollection.find(match, fields);
+        while (customersMatched.hasNext()) {
+            DBObject customer = customersMatched.next();
+            Object custkey = customer.get("_id");
+            DBObject join = new BasicDBObject("O_custkey", custkey);
+            DBObject joinFields = new BasicDBObject();
+            joinFields.put("_id", 1);
+            joinFields.put("O_orderdate", 1);
+            joinFields.put("O_shippriority", 1);
+            DBCursor ordersMatched = orderCollection.find(join, joinFields);
+            while (ordersMatched.hasNext()) {
+                DBObject order = ordersMatched.next();
+                Object orderKey = order.get("_id");
+                Object orderDate = order.get("O_orderdate");
+                Object shipPriority = order.get("O_shippriority");
+                if (date1.before((java.util.Date) orderDate)) {
+                    DBObject join2 = new BasicDBObject("L_orderkey", orderKey);
+                    DBObject joinFields2 = new BasicDBObject();
+                    //joinFields.put("L_orderkey", 1); igual que O_orderkey
+                    joinFields.put("L_extendedprice", 1);
+                    joinFields.put("L_discount", 1);
+                    joinFields.put("L_shipdate", 1);
+                    DBCursor lineitemsMatched = lineitemCollection.find(join2, joinFields2);
+                    while (lineitemsMatched.hasNext()) {
+                        DBObject lineitem = lineitemsMatched.next();
+                        Object shipDate = lineitem.get("L_shipdate");
+                        Object discount = lineitem.get("L_discount");
+                        Object extendedPrice = lineitem.get("L_extentedprice");
+                        if (date2.after((java.util.Date) shipDate)) {
+                            select.add( new Object[] {orderKey, extendedPrice, discount, orderDate, shipPriority});
+                        }
+                    }
+                }
+            }
+        }
+        
+        System.out.println( select.size() );
     }
 
     @Override
