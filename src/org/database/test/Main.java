@@ -73,7 +73,7 @@ public class Main {
         System.out.println("Query2 time = " + time);
         time = Float.MAX_VALUE;
         for (i = 0; i < 5; i++) {
-            time = Math.min(time, adapter.executeQuery3());
+            //time = Math.min(time, adapter.executeQuery3());
         }
         System.out.println("Query3 time = " + time);
         time = Float.MAX_VALUE;
@@ -81,23 +81,24 @@ public class Main {
             //time = Math.min(time, adapter.executeQuery4());
         }
         System.out.println("Query4 time = " + time);
-        System.exit(0);
+
         // SECOND BULK
+        
         time = adapter.insertSecondBulk();
         System.out.println("Second bulk insert time = " + time);
         time = Float.MAX_VALUE;
         for (i = 0; i < 5; i++) {
-            time = Math.min(time, adapter.executeQuery1());
+            //time = Math.min(time, adapter.executeQuery1());
         }
         System.out.println("Query1 time = " + time);
         time = Float.MAX_VALUE;
         for (i = 0; i < 5; i++) {
-            time = Math.min(time, adapter.executeQuery2());
+            //time = Math.min(time, adapter.executeQuery2());
         }
         System.out.println("Query2 time = " + time);
         time = Float.MAX_VALUE;
         for (i = 0; i < 5; i++) {
-            time = Math.min(time, adapter.executeQuery3());
+            //time = Math.min(time, adapter.executeQuery3());
         }
         System.out.println("Query3 time = " + time);
         time = Float.MAX_VALUE;

@@ -15,7 +15,9 @@ import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -461,9 +463,9 @@ public class DBAdapterMongo extends AbstractDBAdapter {
                     DBObject join2 = new BasicDBObject("L_orderkey", orderKey);
                     DBObject joinFields2 = new BasicDBObject();
                     //joinFields.put("L_orderkey", 1); igual que O_orderkey
-                    joinFields.put("L_extendedprice", 1);
-                    joinFields.put("L_discount", 1);
-                    joinFields.put("L_shipdate", 1);
+                    joinFields2.put("L_extendedprice", 1);
+                    joinFields2.put("L_discount", 1);
+                    joinFields2.put("L_shipdate", 1);
                     DBCursor lineitemsMatched = lineitemCollection.find(join2, joinFields2);
                     while (lineitemsMatched.hasNext()) {
                         DBObject lineitem = lineitemsMatched.next();
@@ -483,7 +485,87 @@ public class DBAdapterMongo extends AbstractDBAdapter {
 
     @Override
     public void doQuery4() {
+        DBCollection lineitemCollection = db.getCollection("lineitem");
+        DBCollection orderCollection = db.getCollection("order");
+        DBCollection customerCollection = db.getCollection("customer");
+        DBCollection supplierCollection = db.getCollection("supplier");
+        DBCollection nationCollection = db.getCollection("nation");
+        DBCollection regionCollection = db.getCollection("region");
+        String regionName = "NFWlqIfksxATCFWVaEgsngPCYVbYbQOP";
+        java.util.Date date1  = new Date();
+        date1.setYear(2012 - 1900);
+        java.util.Date date2 = (java.util.Date) date1.clone();
+        date2.setYear(date2.getYear() + 1);
+        //  n_name, sum(l_extendedprice * (1-l_discount)) as revenue
+        ArrayList<Object []> select = new ArrayList<>();
+        
+        // get nationkeys with region = regioname
+        Set< String > nationNamesWhere = new HashSet<>();
+        DBObject matching = new BasicDBObject("R_name", regionName);
+        DBCursor regionsMatched = regionCollection.find(matching, new BasicDBObject("_id", 1));
+        while (regionsMatched.hasNext()) {
+            DBObject region = regionsMatched.next();
+            Object regionkey = region.get("_id");
+            
+            DBCursor nationsMatched = nationCollection.find(new BasicDBObject("N_regionkey", regionkey), new BasicDBObject("_id", 1));
+            while (nationsMatched.hasNext()) {
+                DBObject nation = nationsMatched.next();
+                String nationName = (nation.get("_id")).toString();
+                nationNamesWhere.add(nationName);
+            }
+        }
+        
+        DBObject match = new BasicDBObject();
+        DBObject fields = new BasicDBObject();
+        fields.put("_id", 1); // O_orderkey
+        fields.put("O_custkey", 1);
+        fields.put("O_orderdate", 1);
+        DBCursor ordersMatched = orderCollection.find(match, fields);
+        while (ordersMatched.hasNext()) {
+            DBObject order = ordersMatched.next();
+            Object orderkey = order.get("_id");
+            Object customerkey = order.get("O_custkey");
+            Object orderdate = order.get("O_orderdate");
+            java.util.Date aux = (java.util.Date)orderdate;
+            if (aux.after(date1) && aux.before(date2)) {
+                DBObject join = new BasicDBObject("_id", customerkey);
+                DBObject joinFields = new BasicDBObject();
+                joinFields.put("_id", 1);
+                joinFields.put("C_nationkey", 1);
+                DBCursor customersMatched = customerCollection.find(join, joinFields);
+                while (customersMatched.hasNext()) {
+                    DBObject customer = customersMatched.next();
+                    Object nationKey = customer.get("C_nationkey");
 
+                    if (nationNamesWhere.contains(nationKey.toString())) {
+                        // nation with region with name specified
+                        DBObject join2 = new BasicDBObject("L_orderkey", orderkey);
+                        DBObject joinFields2 = new BasicDBObject();
+                        joinFields2.put("L_suppkey", 1);
+                        joinFields2.put("L_discount", 1);
+                        joinFields2.put("L_extendedprice", 1);
+                        DBCursor lineitemsMatched = lineitemCollection.find(join2, joinFields2);
+                        while (lineitemsMatched.hasNext()) {
+                            DBObject lineitem = lineitemsMatched.next();
+                            Object suppkey = lineitem.get("L_suppkey");
+                            Object discount = lineitem.get("L_discount");
+                            Object extendedprice = lineitem.get("L_extendedprice");
+                            DBObject join3 = new BasicDBObject("_id", suppkey);
+                            DBObject joinFields3 = new BasicDBObject("S_nationkey", 1);
+                            DBCursor suppliersMatched = supplierCollection.find(join3, joinFields3);
+                            while (suppliersMatched.hasNext()) {
+                                DBObject supplier = suppliersMatched.next();
+                                Object suppliernation = supplier.get("S_nationkey");
+                                if (nationNamesWhere.contains(suppliernation.toString())) {
+                                    select.add( new Object[] {nationKey, extendedprice, discount});
+                                }
+                            }
+                        } 
+                    }    
+                }
+            }
+        }
+        System.out.println( select.size() );
     }
     
 }
