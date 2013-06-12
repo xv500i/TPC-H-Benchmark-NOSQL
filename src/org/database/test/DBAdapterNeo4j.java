@@ -21,8 +21,11 @@ import org.neo4j.helpers.collection.IteratorUtil;
 public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     private static enum RelTypes implements RelationshipType {
-        IS_MEMBER_OF_REGION,
-        IS_FROM_NATION
+        MEMBER_OF_REGION,
+        FROM_NATION,
+        IS_PART,
+        FROM_SUPPLIER,
+        ORDERED_BY_CUSTOMER
     }
     
     
@@ -140,8 +143,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
         for (int i = 0; i < numInserts; i++) {
             int regionKey = 1 + r.nextInt(numRegions);
-            ExecutionResult result = engine.execute("START region=node(*) where region.R_RegionKey = '" + regionKey + "' return region");
-            
+            ExecutionResult result = engine.execute("START region=node(*) where region.R_RegionKey = '" + regionKey + "' RETURN region");
             Node region = null;
             Iterator<Node> region_column = result.columnAs("region");
             for (Node node : IteratorUtil.asIterable(region_column)) {
@@ -152,7 +154,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
             Node node = graphDB.createNode();
             node.setProperty("N_NationKey", firstInsertPK + i);
             node.setProperty("N_Name", GenerationUtility.generateString(64/2));
-            node.createRelationshipTo(region, RelTypes.IS_MEMBER_OF_REGION);
+            node.createRelationshipTo(region, RelTypes.MEMBER_OF_REGION);
             node.setProperty("N_Comment", GenerationUtility.generateString(160/2));
             node.setProperty("skip", GenerationUtility.generateString(64/2));
         }
@@ -177,8 +179,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertSuppliers(int numInserts, int firstInsertPK, int numNations) {
         for (int i = 0; i < numInserts; i++) {
             int nationKey = 1 + r.nextInt(numNations);
-            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' return nation");
-            
+            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' RETURN nation");
             Node nation = null;
             Iterator<Node> nation_column = result.columnAs("nation");
             for (Node node : IteratorUtil.asIterable(nation_column)) {
@@ -190,7 +191,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
             node.setProperty("S_SuppKey", firstInsertPK + i);
             node.setProperty("S_Name", GenerationUtility.generateString(64/2));
             node.setProperty("S_Address", GenerationUtility.generateString(64/2));
-            node.createRelationshipTo(nation, RelTypes.IS_FROM_NATION);
+            node.createRelationshipTo(nation, RelTypes.FROM_NATION);
             node.setProperty("S_Phone", GenerationUtility.generateString(18/2));
             node.setProperty("S_AcctBal", GenerationUtility.generateNumber(13/2, 2));
             node.setProperty("S_Comment", GenerationUtility.generateString(105/2));
@@ -201,8 +202,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertCustomers(int numInserts, int firstInsertPK, int numNations) {
         for (int i = 0; i < numInserts; i++) {
             int nationKey = 1 + r.nextInt(numNations);
-            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' return nation");
-            
+            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' RETURN nation");
             Node nation = null;
             Iterator<Node> nation_column = result.columnAs("nation");
             for (Node node : IteratorUtil.asIterable(nation_column)) {
@@ -214,7 +214,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
             node.setProperty("C_CustKey", firstInsertPK + 1);
             node.setProperty("C_Name", GenerationUtility.generateString(64/2));
             node.setProperty("C_Address", GenerationUtility.generateString(64/2));
-            node.createRelationshipTo(nation, RelTypes.IS_FROM_NATION);
+            node.createRelationshipTo(nation, RelTypes.FROM_NATION);
             node.setProperty("C_Phone", GenerationUtility.generateString(64/2));
             node.setProperty("C_AcctBal", GenerationUtility.generateNumber(13/2, 2));
             node.setProperty("C_MktSegment", GenerationUtility.generateString(64/2));
@@ -225,20 +225,27 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertPartsupps(int numInserts, int numParts, int numSuppliers) {
         for (int i = 0; i < numInserts; i++) {
-            ArrayList<Integer> pk;
-            int part, supplier;
-            do {
-                pk = new ArrayList<Integer>(2);
-                part = 1 + r.nextInt(numParts);             
-                supplier = 1 + r.nextInt(numSuppliers);     
-                pk.add(part);
-                pk.add(supplier);
-            } while (partsuppPK.contains(pk));
-            partsuppPK.add(pk);
+            int partKey = 1 + r.nextInt(numParts);
+            ExecutionResult result = engine.execute("START part=node(*) where part.P_PartKey = '" + partKey + "' RETURN part");
+            Node part = null;
+            Iterator<Node> part_column = result.columnAs("part");
+            for (Node node : IteratorUtil.asIterable(part_column)) {
+                // Only one iteration
+                part = node;
+            }
+            
+            int supplierKey = 1 + r.nextInt(numSuppliers);
+            result = engine.execute("START supplier=node(*) where supplier.S_SuppKey = '" + supplierKey + "' RETURN supplier");
+            Node supplier = null;
+            Iterator<Node> supplier_column = result.columnAs("supplier");
+            for (Node node : IteratorUtil.asIterable(supplier_column)) {
+                // Only one iteration
+                supplier = node;
+            }
             
             Node node = graphDB.createNode();
-            node.setProperty("PS_PartKey", part);
-            node.setProperty("PS_SuppKey", supplier);
+            node.createRelationshipTo(part, RelTypes.IS_PART);
+            node.createRelationshipTo(supplier, RelTypes.FROM_SUPPLIER);
             node.setProperty("PS_AvailQty", GenerationUtility.generateInteger());
             node.setProperty("PS_SupplyCost", GenerationUtility.generateNumber(13/2, 2));
             node.setProperty("PS_Comment", GenerationUtility.generateString(200/2));
@@ -248,9 +255,18 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertOrders(int numInserts, int firstInsertPK, int numCustomers) {
         for (int i = 0; i < numInserts; i++) {
+            int customerKey = 1 + r.nextInt(numCustomers);
+            ExecutionResult result = engine.execute("START customer=node(*) where customer.C_CustKey = '" + customerKey + "' RETURN customer");
+            Node customer = null;
+            Iterator<Node> customer_column = result.columnAs("customer");
+            for (Node node : IteratorUtil.asIterable(customer_column)) {
+                // Only one iteration
+                customer = node;
+            }
+            
             Node node = graphDB.createNode();
             node.setProperty("O_OrderKey", firstInsertPK + i);
-            node.setProperty("O_CustKey", 1 + r.nextInt(numCustomers));
+            node.createRelationshipTo(customer, RelTypes.ORDERED_BY_CUSTOMER);
             node.setProperty("O_OrderStatus", GenerationUtility.generateString(64/2));
             node.setProperty("O_TotalPrice", GenerationUtility.generateNumber(13/2, 2));
             node.setProperty("O_OrderDate", GenerationUtility.generateDate());
