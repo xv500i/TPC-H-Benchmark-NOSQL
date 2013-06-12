@@ -69,6 +69,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         Transaction tx = graphDB.beginTx();
         try
         {
+            // INSERTS HERE
             
             tx.success();
         }
@@ -101,6 +102,18 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     @Override
     public void doQuery4() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    
+    /* Inserting methods */
+    private void insertRegions(int numInserts, int firstInsertPK) {
+        for (int i = 0; i < numInserts; i++) {
+            Node node = graphDB.createNode();
+            node.setProperty("R_RegionKey", firstInsertPK + i);
+            node.setProperty("R_Name", GenerationUtility.generateString(64/2));
+            node.setProperty("R_Comment", GenerationUtility.generateString(160/2));
+            node.setProperty("skip", GenerationUtility.generateString(64/2));
+        }
     }
     
 }
