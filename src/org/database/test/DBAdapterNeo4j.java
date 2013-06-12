@@ -2,6 +2,8 @@
 package org.database.test;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 
@@ -10,6 +12,27 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
  */
 public class DBAdapterNeo4j extends AbstractDBAdapter {
 
+    /* Tables cardinality */
+    private final static int REGION_CARDINALITY = 5;
+    private final static int NATION_CARDINALITY = 25;
+    private final static int PART_CARDINALITY = 200000;
+    private final static int SUPPLIER_CARDINALITY = 10000;
+    private final static int CUSTOMER_CARDINALITY = 150000;
+    private final static int PARTSUPP_CARDINALITY = 800000;
+    private final static int ORDER_CARDINALITY = 1500000;
+    private final static int LINEITEM_CARDINALITY = 6000000;
+    
+    /* Num inserts */
+    private final static int NUM_LINEITEMS = 20000;
+    private final static double SF = (double)NUM_LINEITEMS/(double)LINEITEM_CARDINALITY;
+    private final static int NUM_REGIONS = REGION_CARDINALITY;
+    private final static int NUM_NATIONS = NATION_CARDINALITY;
+    private final static int NUM_PARTS = (int)(PART_CARDINALITY*SF);
+    private final static int NUM_SUPPLIERS = (int)(SUPPLIER_CARDINALITY*SF);
+    private final static int NUM_CUSTOMERS = (int)(CUSTOMER_CARDINALITY*SF);
+    private final static int NUM_PARTSUPPS = (int)(PARTSUPP_CARDINALITY*SF);
+    private final static int NUM_ORDERS = (int)(ORDER_CARDINALITY*SF);   
+    
     private final static String DB_PATH = "neo4j";
     
     private GraphDatabaseService graphDB;
@@ -43,7 +66,16 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     @Override
     protected void firstInsertOperation() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Transaction tx = graphDB.beginTx();
+        try
+        {
+            
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
     }
 
     @Override
