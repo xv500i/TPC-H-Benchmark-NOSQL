@@ -25,7 +25,9 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         FROM_NATION,
         IS_PART,
         FROM_SUPPLIER,
-        ORDERED_BY_CUSTOMER
+        ORDERED_BY_CUSTOMER,
+        MEMBER_OF_ORDER,
+        HAS_PARTSUPP
     }
     
     
@@ -143,7 +145,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
         for (int i = 0; i < numInserts; i++) {
             int regionKey = 1 + r.nextInt(numRegions);
-            ExecutionResult result = engine.execute("START region=node(*) where region.R_RegionKey = '" + regionKey + "' RETURN region");
+            ExecutionResult result = engine.execute("START region=node(*) WHERE region.R_RegionKey = '" + regionKey + "' RETURN region");
             Node region = null;
             Iterator<Node> region_column = result.columnAs("region");
             for (Node node : IteratorUtil.asIterable(region_column)) {
@@ -179,7 +181,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertSuppliers(int numInserts, int firstInsertPK, int numNations) {
         for (int i = 0; i < numInserts; i++) {
             int nationKey = 1 + r.nextInt(numNations);
-            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' RETURN nation");
+            ExecutionResult result = engine.execute("START nation=node(*) WHERE nation.N_NationKey = '" + nationKey + "' RETURN nation");
             Node nation = null;
             Iterator<Node> nation_column = result.columnAs("nation");
             for (Node node : IteratorUtil.asIterable(nation_column)) {
@@ -202,7 +204,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertCustomers(int numInserts, int firstInsertPK, int numNations) {
         for (int i = 0; i < numInserts; i++) {
             int nationKey = 1 + r.nextInt(numNations);
-            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' RETURN nation");
+            ExecutionResult result = engine.execute("START nation=node(*) WHERE nation.N_NationKey = '" + nationKey + "' RETURN nation");
             Node nation = null;
             Iterator<Node> nation_column = result.columnAs("nation");
             for (Node node : IteratorUtil.asIterable(nation_column)) {
@@ -225,8 +227,18 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertPartsupps(int numInserts, int numParts, int numSuppliers) {
         for (int i = 0; i < numInserts; i++) {
-            int partKey = 1 + r.nextInt(numParts);
-            ExecutionResult result = engine.execute("START part=node(*) where part.P_PartKey = '" + partKey + "' RETURN part");
+            ArrayList<Integer> pk;
+            int partKey, supplierKey;
+            do {
+                pk = new ArrayList<Integer>(2);
+                partKey = 1 + r.nextInt(numParts);             
+                supplierKey = 1 + r.nextInt(numSuppliers);     
+                pk.add(partKey);
+                pk.add(supplierKey);
+            } while (partsuppPK.contains(pk));
+            partsuppPK.add(pk);
+            
+            ExecutionResult result = engine.execute("START part=node(*) WHERE part.P_PartKey = '" + partKey + "' RETURN part");
             Node part = null;
             Iterator<Node> part_column = result.columnAs("part");
             for (Node node : IteratorUtil.asIterable(part_column)) {
@@ -234,8 +246,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
                 part = node;
             }
             
-            int supplierKey = 1 + r.nextInt(numSuppliers);
-            result = engine.execute("START supplier=node(*) where supplier.S_SuppKey = '" + supplierKey + "' RETURN supplier");
+            result = engine.execute("START supplier=node(*) WHERE supplier.S_SuppKey = '" + supplierKey + "' RETURN supplier");
             Node supplier = null;
             Iterator<Node> supplier_column = result.columnAs("supplier");
             for (Node node : IteratorUtil.asIterable(supplier_column)) {
@@ -256,7 +267,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertOrders(int numInserts, int firstInsertPK, int numCustomers) {
         for (int i = 0; i < numInserts; i++) {
             int customerKey = 1 + r.nextInt(numCustomers);
-            ExecutionResult result = engine.execute("START customer=node(*) where customer.C_CustKey = '" + customerKey + "' RETURN customer");
+            ExecutionResult result = engine.execute("START customer=node(*) WHERE customer.C_CustKey = '" + customerKey + "' RETURN customer");
             Node customer = null;
             Iterator<Node> customer_column = result.columnAs("customer");
             for (Node node : IteratorUtil.asIterable(customer_column)) {
@@ -281,21 +292,38 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private void insertLineitems(int numInserts, int numOrders, int numPartsupps) {
         for (int i = 0; i < numInserts; i++) {
             ArrayList<Integer> pk;
-            int order, linenumber;
+            int orderKey, linenumber;
             do {
                 pk = new ArrayList<Integer>(2);
-                order = 1 + r.nextInt(numOrders);      
+                orderKey = 1 + r.nextInt(numOrders);      
                 linenumber = r.nextInt(Integer.MAX_VALUE);
-                pk.add(order);
+                pk.add(orderKey);
                 pk.add(linenumber);
             } while (lineitemPK.contains(pk));
             lineitemPK.add(pk);
             int index = r.nextInt(numPartsupps);
             
+            ExecutionResult result = engine.execute("START order=node(*) WHERE order.O_OrderKey = '" + orderKey + "' RETURN order");
+            Node order = null;
+            Iterator<Node> order_column = result.columnAs("order");
+            for (Node node : IteratorUtil.asIterable(order_column)) {
+                // Only one iteration
+                order = node;
+            }
+            
+            result = engine.execute("START partsupp=node(*) MATCH (partsupp)-[r]->(node) " +
+                                    "WHERE (type(r) = " + RelTypes.IS_PART + " AND node.P_PartKey = '" + partsuppPK.get(index).get(0) +
+                                    "OR (type(r) = " + RelTypes.FROM_SUPPLIER + " AND node.S_SuppKey = '" + partsuppPK.get(index).get(1) + "') RETURN partsupp");
+            Node partsupp = null;
+            Iterator<Node> partsupp_column = result.columnAs("partsupp");
+            for (Node node : IteratorUtil.asIterable(order_column)) {
+                // Only one iteration
+                order = node;
+            }
+            
             Node node = graphDB.createNode();
-            node.setProperty("L_OrderKey", order);
-            node.setProperty("L_PartKey", partsuppPK.get(index).get(0));
-            node.setProperty("L_SuppKey", partsuppPK.get(index).get(1));
+            node.createRelationshipTo(order, RelTypes.MEMBER_OF_ORDER);
+            node.createRelationshipTo(partsupp, RelTypes.HAS_PARTSUPP);
             node.setProperty("L_LineNumber", linenumber);
             node.setProperty("L_Quantity", GenerationUtility.generateInteger());
             node.setProperty("L_ExtendedPrice", GenerationUtility.generateNumber(13/2, 2));
