@@ -21,7 +21,8 @@ import org.neo4j.helpers.collection.IteratorUtil;
 public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     private static enum RelTypes implements RelationshipType {
-        IS_MEMBER_OF_REGION
+        IS_MEMBER_OF_REGION,
+        IS_FROM_NATION
     }
     
     
@@ -55,6 +56,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
     
     private GraphDatabaseService graphDB;
+    private ExecutionEngine engine;
     private static Random r = new Random(System.currentTimeMillis());
     
     
@@ -77,6 +79,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     public void connect() {
          graphDB = new GraphDatabaseFactory().newEmbeddedDatabase(DB_PATH);
          registerShutdownHook(graphDB);
+         engine = new ExecutionEngine(graphDB);
     }
 
     @Override
@@ -136,7 +139,6 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
         for (int i = 0; i < numInserts; i++) {
-            ExecutionEngine engine = new ExecutionEngine(graphDB);
             int regionKey = 1 + r.nextInt(numRegions);
             ExecutionResult result = engine.execute("START region=node(*) where region.R_RegionKey = '" + regionKey + "' return region");
             
@@ -174,11 +176,21 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertSuppliers(int numInserts, int firstInsertPK, int numNations) {
         for (int i = 0; i < numInserts; i++) {
+            int nationKey = 1 + r.nextInt(numNations);
+            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' return nation");
+            
+            Node nation = null;
+            Iterator<Node> nation_column = result.columnAs("nation");
+            for (Node node : IteratorUtil.asIterable(nation_column)) {
+                // Only one iteration
+                nation = node;
+            }
+            
             Node node = graphDB.createNode();
             node.setProperty("S_SuppKey", firstInsertPK + i);
             node.setProperty("S_Name", GenerationUtility.generateString(64/2));
             node.setProperty("S_Address", GenerationUtility.generateString(64/2));
-            node.setProperty("S_NationKey", 1 + r.nextInt(numNations));
+            node.createRelationshipTo(nation, RelTypes.IS_FROM_NATION);
             node.setProperty("S_Phone", GenerationUtility.generateString(18/2));
             node.setProperty("S_AcctBal", GenerationUtility.generateNumber(13/2, 2));
             node.setProperty("S_Comment", GenerationUtility.generateString(105/2));
@@ -188,11 +200,21 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertCustomers(int numInserts, int firstInsertPK, int numNations) {
         for (int i = 0; i < numInserts; i++) {
+            int nationKey = 1 + r.nextInt(numNations);
+            ExecutionResult result = engine.execute("START nation=node(*) where nation.N_NationKey = '" + nationKey + "' return nation");
+            
+            Node nation = null;
+            Iterator<Node> nation_column = result.columnAs("nation");
+            for (Node node : IteratorUtil.asIterable(nation_column)) {
+                // Only one iteration
+                nation = node;
+            }
+            
             Node node = graphDB.createNode();
             node.setProperty("C_CustKey", firstInsertPK + 1);
             node.setProperty("C_Name", GenerationUtility.generateString(64/2));
             node.setProperty("C_Address", GenerationUtility.generateString(64/2));
-            node.setProperty("C_NationKey", 1 + r.nextInt(numNations));
+            node.createRelationshipTo(nation, RelTypes.IS_FROM_NATION);
             node.setProperty("C_Phone", GenerationUtility.generateString(64/2));
             node.setProperty("C_AcctBal", GenerationUtility.generateNumber(13/2, 2));
             node.setProperty("C_MktSegment", GenerationUtility.generateString(64/2));
