@@ -3,11 +3,16 @@ package org.database.test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.helpers.collection.IteratorUtil;
 
 
 /**
@@ -15,6 +20,11 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
  */
 public class DBAdapterNeo4j extends AbstractDBAdapter {
 
+    private static enum RelTypes implements RelationshipType {
+        IS_MEMBER_OF_REGION
+    }
+    
+    
     /* Tables cardinality */
     private final static int REGION_CARDINALITY = 5;
     private final static int NATION_CARDINALITY = 25;
@@ -126,10 +136,21 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     
     private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
         for (int i = 0; i < numInserts; i++) {
+            ExecutionEngine engine = new ExecutionEngine(graphDB);
+            int regionKey = 1 + r.nextInt(numRegions);
+            ExecutionResult result = engine.execute("START region=node(*) where region.R_RegionKey = '" + regionKey + "' return region");
+            
+            Node region = null;
+            Iterator<Node> region_column = result.columnAs("region");
+            for (Node node : IteratorUtil.asIterable(region_column)) {
+                // Only one iteration
+                region = node;
+            }
+            
             Node node = graphDB.createNode();
             node.setProperty("N_NationKey", firstInsertPK + i);
             node.setProperty("N_Name", GenerationUtility.generateString(64/2));
-            node.setProperty("N_RegionKey", 1 + r.nextInt(numRegions));
+            node.createRelationshipTo(region, RelTypes.IS_MEMBER_OF_REGION);
             node.setProperty("N_Comment", GenerationUtility.generateString(160/2));
             node.setProperty("skip", GenerationUtility.generateString(64/2));
         }
