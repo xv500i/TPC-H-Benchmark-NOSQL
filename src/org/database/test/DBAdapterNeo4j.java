@@ -1,6 +1,8 @@
 
 package org.database.test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -37,6 +39,11 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private final static String DB_PATH = "neo4j";
     
     
+    /* Partsupp PKs */
+    ArrayList<ArrayList<Integer>> partsuppPK = new ArrayList<ArrayList<Integer>>(NUM_PARTSUPPS);
+    /* Lineitem PKs */
+    HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
+    
     private GraphDatabaseService graphDB;
     private static Random r = new Random(System.currentTimeMillis());
     
@@ -70,14 +77,12 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     @Override
     protected void firstInsertOperation() {
         Transaction tx = graphDB.beginTx();
-        try
-        {
+        try {
             // INSERTS HERE
             
             tx.success();
         }
-        finally
-        {
+        finally {
             tx.finish();
         }
     }
@@ -175,115 +180,78 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }
     }
     
-    /*
     private void insertPartsupps(int numInserts, int numParts, int numSuppliers) {
         for (int i = 0; i < numInserts; i++) {
-            Node node = graphDB.createNode();
-            node.setProperty("PS_PartKey", i);
-            node.setProperty("PS_SuppKey", i);
-            node.setProperty("PS_AvailQty", i);
-            node.setProperty("PS_SupplyCost", i);
-            node.setProperty("PS_Comment", i);
-            node.setProperty("skip", i);
-            
-        }
-        
-        try {
             ArrayList<Integer> pk;
             int part, supplier;
-            String insert = "INSERT INTO partsupp VALUES(?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < numInserts; i++) {
-                do {
-                    pk = new ArrayList<Integer>(2);
-                    part = 1 + r.nextInt(numParts);             
-                    supplier = 1 + r.nextInt(numSuppliers);     
-                    pk.add(part);
-                    pk.add(supplier);
-                } while (partsuppPK.contains(pk));
-                partsuppPK.add(pk);
-                ps.setInt(1, part);                             // PK (and FK Part)
-                ps.setInt(2, supplier);                         // PK (and FK Supplier)
-                setPreparedStatementInteger(ps, 3);
-                setPreparedStatementNumber(ps, 4, 13/2, 2);
-                setPreparedStatementString(ps, 5, 200/2);
-                setPreparedStatementString(ps, 6, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+            do {
+                pk = new ArrayList<Integer>(2);
+                part = 1 + r.nextInt(numParts);             
+                supplier = 1 + r.nextInt(numSuppliers);     
+                pk.add(part);
+                pk.add(supplier);
+            } while (partsuppPK.contains(pk));
+            partsuppPK.add(pk);
+            
+            Node node = graphDB.createNode();
+            node.setProperty("PS_PartKey", part);
+            node.setProperty("PS_SuppKey", supplier);
+            node.setProperty("PS_AvailQty", GenerationUtility.generateInteger());
+            node.setProperty("PS_SupplyCost", GenerationUtility.generateNumber(13/2, 2));
+            node.setProperty("PS_Comment", GenerationUtility.generateString(200/2));
+            node.setProperty("skip", GenerationUtility.generateString(64/2));
         }
     }
     
     private void insertOrders(int numInserts, int firstInsertPK, int numCustomers) {
-        try {
-            String insert = "INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < numInserts; i++) {
-                ps.setInt(1, firstInsertPK + i);            // PK   
-                ps.setInt(2, 1 + r.nextInt(numCustomers));  // FK Customer
-                setPreparedStatementString(ps, 3, 64/2);
-                setPreparedStatementNumber(ps, 4, 13/2, 2);
-                setPreparedStatementDate(ps, 5);
-                setPreparedStatementString(ps, 6, 15/2);
-                setPreparedStatementString(ps, 7, 64/2);
-                setPreparedStatementInteger(ps, 8);
-                setPreparedStatementString(ps, 9, 80/2);
-                setPreparedStatementString(ps, 10, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+        for (int i = 0; i < numInserts; i++) {
+            Node node = graphDB.createNode();
+            node.setProperty("O_OrderKey", firstInsertPK + i);
+            node.setProperty("O_CustKey", 1 + r.nextInt(numCustomers));
+            node.setProperty("O_OrderStatus", GenerationUtility.generateString(64/2));
+            node.setProperty("O_TotalPrice", GenerationUtility.generateNumber(13/2, 2));
+            node.setProperty("O_OrderDate", GenerationUtility.generateDate());
+            node.setProperty("O_OrderPriority", GenerationUtility.generateString(15/2));
+            node.setProperty("O_Clerk", GenerationUtility.generateString(64/2));
+            node.setProperty("O_ShipPriority", GenerationUtility.generateInteger());
+            node.setProperty("O_Comment", GenerationUtility.generateString(80/2));
+            node.setProperty("skip", GenerationUtility.generateString(64/2)); 
         }
     }
     
     private void insertLineitems(int numInserts, int numOrders, int numPartsupps) {
-        try {
+        for (int i = 0; i < numInserts; i++) {
             ArrayList<Integer> pk;
             int order, linenumber;
-            String insert = "INSERT INTO lineitem VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = connection.prepareStatement(insert);
-            for (int i = 0; i < numInserts; i++) {
-                do {
-                    pk = new ArrayList<Integer>(2);
-                    order = 1 + r.nextInt(numOrders);      
-                    linenumber = r.nextInt(Integer.MAX_VALUE);
-                    pk.add(order);
-                    pk.add(linenumber);
-                } while (lineitemPK.contains(pk));
-                lineitemPK.add(pk);
-                ps.setInt(1, order);                        // PK (and FK Order)
-                int index = r.nextInt(numPartsupps);        // FK Partsupp
-                ps.setInt(2, partsuppPK.get(index).get(0));
-                ps.setInt(3, partsuppPK.get(index).get(1));
-                ps.setInt(4, linenumber);                   // PK
-                setPreparedStatementInteger(ps, 5);
-                setPreparedStatementNumber(ps, 6, 13/2, 2);
-                setPreparedStatementNumber(ps, 7, 13/2, 2);
-                setPreparedStatementNumber(ps, 8, 13/2, 2);
-                setPreparedStatementString(ps, 9, 64/2);
-                setPreparedStatementString(ps, 10, 64/2);
-                setPreparedStatementDate(ps, 11);
-                setPreparedStatementDate(ps, 12);
-                setPreparedStatementDate(ps, 13);
-                setPreparedStatementString(ps, 14, 64/2);
-                setPreparedStatementString(ps, 15, 64/2);
-                setPreparedStatementString(ps, 16, 64/2);
-                setPreparedStatementString(ps, 17, 64/2);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            ps.close();
-        } 
-        catch (SQLException ex) {
-            Logger.getLogger(DBAdapterOracle.class.getName()).log(Level.SEVERE, null, ex);
+            do {
+                pk = new ArrayList<Integer>(2);
+                order = 1 + r.nextInt(numOrders);      
+                linenumber = r.nextInt(Integer.MAX_VALUE);
+                pk.add(order);
+                pk.add(linenumber);
+            } while (lineitemPK.contains(pk));
+            lineitemPK.add(pk);
+            int index = r.nextInt(numPartsupps);
+            
+            Node node = graphDB.createNode();
+            node.setProperty("L_OrderKey", order);
+            node.setProperty("L_PartKey", partsuppPK.get(index).get(0));
+            node.setProperty("L_SuppKey", partsuppPK.get(index).get(1));
+            node.setProperty("L_LineNumber", linenumber);
+            node.setProperty("L_Quantity", GenerationUtility.generateInteger());
+            node.setProperty("L_ExtendedPrice", GenerationUtility.generateNumber(13/2, 2));
+            node.setProperty("L_Discount", GenerationUtility.generateNumber(13/2, 2));
+            node.setProperty("L_Tax", GenerationUtility.generateNumber(13/2, 2));
+            node.setProperty("L_ReturnFlag", GenerationUtility.generateString(64/2));
+            node.setProperty("L_LineStatus", GenerationUtility.generateString(64/2));
+            node.setProperty("L_ShipDate", GenerationUtility.generateDate());
+            node.setProperty("L_CommitDate", GenerationUtility.generateDate());
+            node.setProperty("L_ReceiptDate", GenerationUtility.generateDate());
+            node.setProperty("L_ShipInstruct", GenerationUtility.generateString(64/2));
+            node.setProperty("L_ShipMode", GenerationUtility.generateString(64/2));
+            node.setProperty("L_Comment", GenerationUtility.generateString(64/2));
+            node.setProperty("skip", GenerationUtility.generateString(64/2));
         }
-    }*/
+    }
     
 }
