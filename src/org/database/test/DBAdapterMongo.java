@@ -390,9 +390,9 @@ public class DBAdapterMongo extends AbstractDBAdapter {
     @Override
     public void doQuery2() {
         
-        Object size;
-        Object type;
-        Object regionName = "wathever";
+        int size = new Integer(1333739247);
+        String type = "b";
+        String regionName = "ojDwgtlGyEEPGkTakiNDxTGYETuueiYi";
         
         ArrayList<Object []> select = new ArrayList<>();
         
@@ -463,8 +463,11 @@ public class DBAdapterMongo extends AbstractDBAdapter {
                             DBObject part = partMatched.next();
                             Object partKey = part.get("_id");
                             Object partMFGR = part.get("P_mfgr");
-                            
-                            if (true) {
+                            String partType = (String) part.get("P_type");
+                            Integer partSize = (Integer)part.get("P_size");
+                            int ipartSize = 0;
+                            if (partSize != null) ipartSize = (int) partSize; 
+                            if (ipartSize == size && partType.endsWith(type)) {
                                 select.add( new Object[] {supplierBalance, supplierName, nationName, partKey, partMFGR, supplierAddress, supplierPhone, supplierComment} );
                             }
                         }
