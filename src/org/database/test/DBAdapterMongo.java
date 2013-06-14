@@ -389,43 +389,90 @@ public class DBAdapterMongo extends AbstractDBAdapter {
 
     @Override
     public void doQuery2() {
-        DBCollection lineitemCollection = db.getCollection("lineitem");
         
-        DBObject match = new BasicDBObject("$match", new BasicDBObject("L_shipdate", new BasicDBObject("$lt", new java.util.Date())) );
-        // build the $projection operation
+        Object size;
+        Object type;
+        Object regionName = "wathever";
         
-        DBObject fields = new BasicDBObject("L_returnflag", 1);
-        fields.put("L_linestatus", 1);
-        fields.put("L_quantity", 1);
-        fields.put("L_extendedprice", 1);
-        fields.put("L_discount", 1);
-        fields.put("L_tax", 1);
-        fields.put("_id", 0);
-        DBObject project = new BasicDBObject("$project", fields );
-
-        // Now the $group operation
-        DBObject groupBy = new BasicDBObject();
-        groupBy.put("L_returnflag", "$L_returnflag");
-        groupBy.put("L_linestatus", "$L_linestatus");
-        DBObject groupFields = new BasicDBObject("_id", groupBy);
-        groupFields.put("sum_qty", new BasicDBObject("$sum", "$L_quantity"));
-        groupFields.put("sum_base_price", new BasicDBObject("$sum", "$L_extendedprice"));
-        groupFields.put("sum_disc_price", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)"));
-        groupFields.put("sum_charge", new BasicDBObject("$sum", "$L_extendedprice*(1-$L_discount)*(1-$L_tax)"));
-        groupFields.put("avg_qty", new BasicDBObject("$avg", "$L_quantity"));
-        groupFields.put("avg_extendedprice", new BasicDBObject("$avg", "$L_extendedprice"));
-        groupFields.put("avg_discount", new BasicDBObject("$avg", "$L_discount"));
-        groupFields.put("count_order", new BasicDBObject("$sum", 1));
-        DBObject group = new BasicDBObject("$group", groupFields);
+        ArrayList<Object []> select = new ArrayList<>();
         
-        // order by
-        DBObject orderClause = new BasicDBObject("L_returnflag", 1);
-        orderClause.put("L_linestatus", 1);
-        DBObject order = new BasicDBObject("$sort", orderClause);
+        DBCollection partCollection = db.getCollection("part");
+        DBCollection partSuppCollection = db.getCollection("partsupp");
+        DBCollection supplierCollection = db.getCollection("supplier");
+        DBCollection regionCollection = db.getCollection("region");
+        DBCollection nationCollection = db.getCollection("nation");
         
-        // run aggregation
-        AggregationOutput output = lineitemCollection.aggregate( match, project, group, order );
-        System.out.println( output.getCommandResult() );
+        DBObject match = new BasicDBObject("R_name", regionName);
+        DBObject fields = new BasicDBObject();
+        fields.put("_id", 1);
+        DBCursor regionsMatched = regionCollection.find(match, fields);
+        while (regionsMatched.hasNext()) {
+            DBObject region = regionsMatched.next();
+            Object regionId = region.get("_id");
+            
+            DBObject join = new BasicDBObject("N_regionkey", regionId);
+            DBObject joinFields = new BasicDBObject();
+            joinFields.put("_id",1);
+            joinFields.put("N_name",1);
+            
+            DBCursor nationsMatched = nationCollection.find(join, joinFields);
+            while (nationsMatched.hasNext()) {
+                DBObject nation = nationsMatched.next();
+                Object nationId = nation.get("_id");
+                Object nationName = nation.get("N_name");
+                
+                DBObject join2 = new BasicDBObject("S_nationkey", nationId);
+                DBObject join2Fields = new BasicDBObject();
+                join2Fields.put("_id", 1);
+                join2Fields.put("S_acctbal", 1);
+                join2Fields.put("S_name", 1);
+                join2Fields.put("S_phone", 1);
+                join2Fields.put("S_comment", 1);
+                join2Fields.put("S_address", 1);
+                
+                DBCursor supplierMatched = supplierCollection.find(join2, join2Fields);
+                while (supplierMatched.hasNext()) {
+                    DBObject supplier = supplierMatched.next();
+                    Object supplierId = supplier.get("_id");
+                    Object supplierBalance = supplier.get("S_acctbal");
+                    Object supplierName = supplier.get("S_name");
+                    Object supplierPhone = supplier.get("S_phone");
+                    Object supplierAddress = supplier.get("S_address");
+                    Object supplierComment = supplier.get("S_comment");
+                    
+                    DBObject join3 = new BasicDBObject("PS_suppkey", supplierId);
+                    DBObject join3Fields = new BasicDBObject(); 
+                    join3Fields.put("_id", 1);
+                    join3Fields.put("PS_partkey", 1);
+                    
+                    DBCursor partsuppMatched = partSuppCollection.find(join3, join3Fields);
+                    
+                    while (partsuppMatched.hasNext()) {
+                        DBObject partsupp = partsuppMatched.next();
+                        Object partId = partsupp.get("PS_partkey");
+                        
+                        DBObject join4 = new BasicDBObject("_id", partId);
+                        DBObject join4Fields = new BasicDBObject();
+                        join4Fields.put("_id", 1);
+                        join4Fields.put("P_size", 1);
+                        join4Fields.put("P_type", 1);
+                        join4Fields.put("P_mfgr", 1);
+                        
+                        DBCursor partMatched = partCollection.find(join4, join4Fields);
+                        while (partMatched.hasNext()) {
+                            DBObject part = partMatched.next();
+                            Object partKey = part.get("_id");
+                            Object partMFGR = part.get("P_mfgr");
+                            
+                            if (true) {
+                                select.add( new Object[] {supplierBalance, supplierName, nationName, partKey, partMFGR, supplierAddress, supplierPhone, supplierComment} );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println( select.size() );
     }
 
     @Override
