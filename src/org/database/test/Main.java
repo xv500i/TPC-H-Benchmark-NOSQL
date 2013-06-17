@@ -119,11 +119,20 @@ public class Main {
         
         // INSERT FIRST BULK
         float time;
-        /*time = adapter.insertFirstBulk();
-        System.out.println("First bulk insert time = " + time);*/
+        //time = adapter.insertFirstBulk();
+        //System.out.println("First bulk insert time = " + time);
         
         time = adapter.executeQuery1();
         System.out.println("Query1 time = " + time);
+        
+        time = adapter.executeQuery2();
+        System.out.println("Query2 time = " + time);
+        
+        time = adapter.executeQuery3();
+        System.out.println("Query3 time = " + time);
+        
+        time = adapter.executeQuery4();
+        System.out.println("Query4 time = " + time);
         
         adapter.disconnect();
         

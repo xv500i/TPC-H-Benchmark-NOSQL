@@ -145,7 +145,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
                 "SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Sum_Disc_Price, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)*(1 + li.L_Tax)) AS Sum_Charge, " +
                 "AVG(li.L_Quantity) AS Avg_Qty, AVG(li.L_ExtendedPrice) AS Avg_Price, AVG(li.L_Discount) AS Avg_Disc, COUNT(*) AS Count_Order " +
                 "ORDER BY li.L_ReturnFlag, li.L_LineStatus");
-        System.out.println(result.dumpToString());
+        //System.out.println(result.dumpToString());
     }
 
     @Override
