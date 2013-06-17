@@ -98,7 +98,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     protected void firstInsertOperation() {
         Transaction tx = graphDB.beginTx();
         try {
-            /*insertRegions(NUM_REGIONS, 1);                              // 5 Regions
+            insertRegions(NUM_REGIONS, 1);                              // 5 Regions
             System.out.println(NUM_REGIONS + " inserts region acabats");
             insertNations(NUM_NATIONS, 1, NUM_REGIONS);                 // 25 Nations
             System.out.println(NUM_NATIONS + " inserts nation acabats");
@@ -111,7 +111,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
             insertPartsupps(NUM_PARTSUPPS, NUM_PARTS, NUM_SUPPLIERS);   // 2666 Partsupps
             System.out.println(NUM_PARTSUPPS + " inserts partsupp acabats");
             insertOrders(NUM_ORDERS, 1, NUM_CUSTOMERS);                 // 5000 Orders
-            System.out.println(NUM_ORDERS + " inserts order acabats");*/
+            System.out.println(NUM_ORDERS + " inserts order acabats");
             insertLineitems(NUM_LINEITEMS, NUM_ORDERS, NUM_PARTSUPPS);  // 20000 Lineitems
             System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
             
@@ -328,9 +328,10 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
                 order = node;
             }
             
-            result = engine.execute("START partsupp=node(*) MATCH (partsupp)-[r]->(node) " +
-                                    "WHERE (type(r) = '" + RelTypes.IS_PART + "' AND node.P_PartKey! = " + /*partsuppPK.get(index).get(0)*/1 + ")" +
-                                    "OR (type(r) = '" + RelTypes.FROM_SUPPLIER + "' AND node.S_SuppKey! = " + /*partsuppPK.get(index).get(1)*/1 + ") RETURN partsupp");
+            result = engine.execute("START partsupp=node(*) " +
+                                    "MATCH (supplier)<-[:FROM_SUPPLIER]-(partsupp)-[:IS_PART]->(part) " +
+                                    "WHERE part.P_PartKey! = " + partsuppPK.get(index).get(0) + " " +
+                                    "AND supplier.S_SuppKey! = " + partsuppPK.get(index).get(1) + " RETURN partsupp");
             Node partsupp = null;
             Iterator<Node> partsupp_column = result.columnAs("partsupp");
             for (Node node : IteratorUtil.asIterable(partsupp_column)) {
