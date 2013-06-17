@@ -125,10 +125,10 @@ public class Main {
         //time = adapter.executeQuery1();
         System.out.println("Query1 time = " + time);
         
-        time = adapter.executeQuery2();
+        //time = adapter.executeQuery2();
         System.out.println("Query2 time = " + time);
         
-        //time = adapter.executeQuery3();
+        time = adapter.executeQuery3();
         System.out.println("Query3 time = " + time);
         
         //time = adapter.executeQuery4();
