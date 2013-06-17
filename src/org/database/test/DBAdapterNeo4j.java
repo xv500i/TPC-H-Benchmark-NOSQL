@@ -51,7 +51,9 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private final static int NUM_SUPPLIERS = (int)(SUPPLIER_CARDINALITY*SF);
     private final static int NUM_CUSTOMERS = (int)(CUSTOMER_CARDINALITY*SF);
     private final static int NUM_PARTSUPPS = (int)(PARTSUPP_CARDINALITY*SF);
-    private final static int NUM_ORDERS = (int)(ORDER_CARDINALITY*SF);   
+    private final static int NUM_ORDERS = (int)(ORDER_CARDINALITY*SF);
+    private final static int NUM_INSERTS = NUM_REGIONS + NUM_NATIONS + NUM_PARTS + NUM_SUPPLIERS + 
+                                           NUM_CUSTOMERS + NUM_PARTSUPPS + NUM_ORDERS + NUM_LINEITEMS;
     
     /* First nodes ID */
     private final static int FIRST_REGION_NODE = 1;
@@ -72,16 +74,16 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
     
     /* Needed query parameters */
-    String lineitemShipdate1;   // DATE
+    Long lineitemShipdate1;     // DATE
     Integer partSize;
     String partType;
     String regionName1;
     String customerMktsegment;
-    String orderOrderdate1;     // DATE
-    String lineitemShipdate2;   // DATE
+    Long orderOrderdate1;       // DATE
+    Long lineitemShipdate2;     // DATE
     String regionName2;
-    String orderOrderdate2;     // DATE
-    String orderOrderdate3;     // DATE
+    Long orderOrderdate2;       // DATE
+    Long orderOrderdate3;       // DATE
     
     private GraphDatabaseService graphDB;
     private ExecutionEngine engine;
@@ -145,14 +147,37 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     @Override
     protected void secondInsertOperation() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Transaction tx = graphDB.beginTx();
+        try {
+            insertRegions(NUM_REGIONS, NUM_REGIONS + 1);                                                                                    // 5 Regions
+            System.out.println(NUM_REGIONS + " inserts region acabats");
+            insertNations(NUM_NATIONS, NUM_NATIONS + 1, NUM_INSERTS + FIRST_REGION_NODE, NUM_REGIONS);                                      // 25 Nations
+            System.out.println(NUM_NATIONS + " inserts nation acabats");
+            insertParts(NUM_PARTS, NUM_PARTS + 1);                                                                                          // 666 Parts
+            System.out.println(NUM_PARTS + " inserts part acabats");
+            insertSuppliers(NUM_SUPPLIERS, NUM_SUPPLIERS + 1, NUM_INSERTS + FIRST_NATION_NODE, NUM_NATIONS);                                // 33 Suppliers
+            System.out.println(NUM_SUPPLIERS + " inserts supplier acabats");
+            insertCustomers(NUM_CUSTOMERS, NUM_CUSTOMERS + 1, NUM_INSERTS + FIRST_NATION_NODE, NUM_NATIONS);                                // 500 Customers
+            System.out.println(NUM_CUSTOMERS + " inserts customer acabats");
+            insertPartsupps(NUM_PARTSUPPS, NUM_INSERTS + FIRST_PART_NODE, NUM_PARTS, NUM_INSERTS + FIRST_SUPPLIER_NODE, NUM_SUPPLIERS);     // 2666 Partsupps
+            System.out.println(NUM_PARTSUPPS + " inserts partsupp acabats");
+            insertOrders(NUM_ORDERS, NUM_ORDERS + 1, NUM_INSERTS + FIRST_CUSTOMER_NODE, NUM_CUSTOMERS);                                     // 5000 Orders
+            System.out.println(NUM_ORDERS + " inserts order acabats");
+            insertLineitems(NUM_LINEITEMS, NUM_INSERTS + FIRST_ORDER_NODE, NUM_ORDERS, NUM_INSERTS + FIRST_PARTSUPP_NODE, NUM_PARTSUPPS);   // 20000 Lineitems
+            System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
+            
+            tx.success();
+        }
+        finally {
+            tx.finish();
+        }
     }
 
     @Override
     public void doQuery1() {
         ExecutionResult result = engine.execute(
                 "START li=node(*) " +
-                "WHERE li.L_ShipDate <= '???' " +    
+                "WHERE li.L_ShipDate! <= " + lineitemShipdate1 + " " +    
                 "RETURN li.L_ReturnFlag, li.L_LineStatus, SUM(li.L_Quantity) AS Sum_Qty, SUM(li.L_ExtendedPrice) AS Sum_Base_Price, " +
                 "SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Sum_Disc_Price, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)*(1 + li.L_Tax)) AS Sum_Charge, " +
                 "AVG(li.L_Quantity) AS Avg_Qty, AVG(li.L_ExtendedPrice) AS Avg_Price, AVG(li.L_Discount) AS Avg_Disc, COUNT(*) AS Count_Order " +
@@ -165,19 +190,19 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         ExecutionResult subResult = engine.execute(
                 "START ps=node(*) " +
                 "MATCH (ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
-                "WHERE r.R_Name = '???' " +
+                "WHERE r.R_Name! = '" + regionName1 + "' " +
                 "RETURN MIN(ps.PS_SupplyCost) AS Min_Cost");
         
-        int min_cost = 0;
-        Iterator<Integer> min_cost_it = subResult.columnAs("Min_Cost");
-        for (Integer cost : IteratorUtil.asIterable(min_cost_it)) {
+        double min_cost = 0;
+        Iterator<Double> min_cost_it = subResult.columnAs("Min_Cost");
+        for (Double cost : IteratorUtil.asIterable(min_cost_it)) {
             min_cost = cost;
         }
         
         ExecutionResult result = engine.execute(
                 "START ps=node(*) " +
                 "MATCH (p)<-[:IS_PART]-(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
-                "WHERE p.P_Size = ??? AND p.P_Type =~ '*.???' AND r.R_Name = '???' AND ps.PS_SupplyCost = " + min_cost + " " +
+                "WHERE p.P_Size! = " + partSize + " AND p.P_Type! =~ '" + partType + "' AND r.R_Name! = '" + regionName1 + "' AND ps.PS_SupplyCost! = " + min_cost + " " +
                 "RETURN s.S_AcctBal, s.S_Name, n.N_Name, p.P_PartKey, p.P_Mfgr, s.S_Address, s.S_Phone, s.S_Comment " +
                 "ORDER BY s.S_AcctBal DESC, n.N_Name, s.S_Name, p.P_PartKey");
         //System.out.println(result.dumpToString());
@@ -188,8 +213,8 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         ExecutionResult result = engine.execute(
                 "START li=node(*) " +
                 "MATCH (c)<-[:ORDERED_BY_CUSTOMER]-(o)<-[:MEMBER_OF_ORDER]-(li) " +
-                "WHERE c.C_MktSegment = '???' AND o.O_OrderDate < '???' AND li.L_ShipDate > '???' " +    
-                "RETURN li.L_OrderKey, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue, o.O_OrderDate, o.O_ShipPriority " +
+                "WHERE c.C_MktSegment! = '" + customerMktsegment + "' AND o.O_OrderDate! < " + orderOrderdate1 + " AND li.L_ShipDate! > " + orderOrderdate2 + " " +    
+                "RETURN o.O_OrderKey, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue, o.O_OrderDate, o.O_ShipPriority " +
                 "ORDER BY Revenue DESC, o.O_OrderDate");
         //System.out.println(result.dumpToString());
     }
@@ -199,9 +224,9 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         ExecutionResult result = engine.execute(
                 "START ps=node(*) " +
                 "MATCH (c)<-[:ORDERED_BY_CUSTOMER]-(o)<-[:MEMBER_OF_ORDER]-(li)-[:HAS_PARTSUPP]->(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
-                "(p)<-[:IS_PART]-(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
-                "WHERE r.R_Name = '???' AND o.O_OrderDate >= '???' AND o.O_OrderDate < '???' " +
-                "RETURN n.N_Name, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue");
+                "WHERE r.R_Name! = '" + regionName2 + "' AND o.O_OrderDate! >= " + orderOrderdate2 + " AND o.O_OrderDate! < " + orderOrderdate3 + " " +
+                "RETURN n.N_Name, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue " +
+                "ORDER BY Revenue DESC");
         //System.out.println(result.dumpToString());
     }
     
@@ -214,8 +239,8 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         // LINEITEM SHIPDATE
         int lineItem = r.nextInt(NUM_LINEITEMS);
         ExecutionResult result = engine.execute("START li=node(*) WHERE HAS(li.L_ShipDate) RETURN li.L_ShipDate AS ShipDate SKIP " + lineItem + " LIMIT 1");
-        Iterator<String> shipDate_it = result.columnAs("ShipDate");
-        for (String shipDate : IteratorUtil.asIterable(shipDate_it)) {
+        Iterator<Long> shipDate_it = result.columnAs("ShipDate");
+        for (Long shipDate : IteratorUtil.asIterable(shipDate_it)) {
             lineitemShipdate1 = shipDate;
         }
         
@@ -248,8 +273,8 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         // ORDER ORDERDATE
         int order = r.nextInt(NUM_ORDERS);
         result = engine.execute("START o=node(*) WHERE HAS(o.O_OrderDate) RETURN o.O_OrderDate AS OrderDate SKIP " + order + " LIMIT 1");
-        Iterator<String> orderDate_it = result.columnAs("OrderDate");
-        for (String orderDate : IteratorUtil.asIterable(orderDate_it)) {
+        Iterator<Long> orderDate_it = result.columnAs("OrderDate");
+        for (Long orderDate : IteratorUtil.asIterable(orderDate_it)) {
             orderOrderdate1 = orderDate;
         }
         
@@ -257,7 +282,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         lineItem = r.nextInt(NUM_LINEITEMS);
         result = engine.execute("START li=node(*) WHERE HAS(li.L_ShipDate) RETURN li.L_ShipDate AS ShipDate SKIP " + lineItem + " LIMIT 1");
         shipDate_it = result.columnAs("ShipDate");
-        for (String shipDate : IteratorUtil.asIterable(shipDate_it)) {
+        for (Long shipDate : IteratorUtil.asIterable(shipDate_it)) {
             lineitemShipdate2 = shipDate;
         }
         
@@ -283,15 +308,15 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         result = engine.execute("START o=node(*) WHERE HAS(o.O_OrderDate) RETURN o.O_OrderDate AS OrderDate SKIP " + order + " LIMIT 2");
         orderDate_it = result.columnAs("OrderDate");
         int i = 0;
-        for (String orderDate : IteratorUtil.asIterable(orderDate_it)) {
+        for (Long orderDate : IteratorUtil.asIterable(orderDate_it)) {
             if (i == 0) orderOrderdate2 = orderDate;
             else orderOrderdate3 = orderDate;
             i++;
         }
-        if (orderOrderdate2.compareTo(orderOrderdate3) > 0) {
-                String auxDate = orderOrderdate2;
-                orderOrderdate2 = orderOrderdate3;
-                orderOrderdate3 = auxDate;
+        if (orderOrderdate2 > orderOrderdate3) {
+            Long auxDate = orderOrderdate2;
+            orderOrderdate2 = orderOrderdate3;
+            orderOrderdate3 = auxDate;
         }
     }
     

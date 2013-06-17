@@ -108,35 +108,66 @@ public class Main {
         System.out.println("Query4 time = " + time);
     }
     
+    
     public static void neo4jExecution()
     {
-        System.out.println("Neo4jExecution Start");
-        
+        System.out.println("Neo4j execution start");
         IDBAdapter adapter = new DBAdapterNeo4j();
         adapter.connect();
-        
-        System.out.println("Neo4j Database connection established");
+        System.out.println("Neo4j database connection established");
         
         // INSERT FIRST BULK
-        float time = Float.MAX_VALUE;
-        //time = adapter.insertFirstBulk();
+        float time;
+        time = adapter.insertFirstBulk();
         System.out.println("First bulk insert time = " + time);
         
-        //time = adapter.executeQuery1();
+        // QUERIES
+        // Obtain required parameters
+        ((DBAdapterNeo4j)adapter).obtainQueryParameters();
+        
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery1();
         System.out.println("Query1 time = " + time);
         
-        //time = adapter.executeQuery2();
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery2();
         System.out.println("Query2 time = " + time);
         
-        time = adapter.executeQuery3();
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery3();
         System.out.println("Query3 time = " + time);
         
-        //time = adapter.executeQuery4();
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery4();
         System.out.println("Query4 time = " + time);
         
-        adapter.disconnect();
+        // INSERT SECOND BULK
+        time = adapter.insertSecondBulk();
+        System.out.println("Second bulk insert time = " + time);
         
-        System.out.println("Neo4jExecution End");
+        // QUERIES
+        // Obtain required parameters
+        ((DBAdapterNeo4j)adapter).obtainQueryParameters();
+        
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery1();
+        System.out.println("Query1 time = " + time);
+        
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery2();
+        System.out.println("Query2 time = " + time);
+        
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery3();
+        System.out.println("Query3 time = " + time);
+        
+        time = Float.MAX_VALUE;
+        for (int i = 0; i < 5; i++) time = adapter.executeQuery4();
+        System.out.println("Query4 time = " + time);
+        
+        System.out.println("Ending Neo4j database connection");
+        adapter.disconnect();
+        System.out.println("Neo4j execution end");
     }
     
 }
