@@ -151,7 +151,11 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     @Override
     public void doQuery3() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        ExecutionResult result = engine.execute("START o=node(*) " +
+                                                "MATCH (c)<-[:ORDERED_BY_CUSTOMER]-(o)<-[:MEMBER_OF_ORDER]-(li) " +
+                                                "WHERE c.C_MktSegment = ??? AND o.O_OrderDate < ??? AND li.L_ShipDate > ??? " +    
+                                                "RETURN li.L_OrderKey, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)), o.O_OrderDate, o.O_ShipPriority");
+        System.out.println(result.dumpToString());
     }
 
     @Override
