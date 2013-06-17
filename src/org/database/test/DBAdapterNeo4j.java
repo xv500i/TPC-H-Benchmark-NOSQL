@@ -4,17 +4,13 @@ package org.database.test;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Random;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.helpers.collection.IteratorUtil;
 
 
 /**
@@ -54,11 +50,21 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     private final static int NUM_PARTSUPPS = (int)(PARTSUPP_CARDINALITY*SF);
     private final static int NUM_ORDERS = (int)(ORDER_CARDINALITY*SF);   
     
-    private final static String DB_PATH = "neo4j";
+    /* First nodes ID */
+    private final static int FIRST_REGION_NODE = 1;
+    private final static int FIRST_NATION_NODE = FIRST_REGION_NODE + NUM_REGIONS;
+    private final static int FIRST_PART_NODE = FIRST_NATION_NODE + NUM_NATIONS;
+    private final static int FIRST_SUPPLIER_NODE = FIRST_PART_NODE + NUM_PARTS;
+    private final static int FIRST_CUSTOMER_NODE = FIRST_SUPPLIER_NODE + NUM_SUPPLIERS;
+    private final static int FIRST_PARTSUPP_NODE = FIRST_CUSTOMER_NODE + NUM_CUSTOMERS;
+    private final static int FIRST_ORDER_NODE = FIRST_PARTSUPP_NODE + NUM_PARTSUPPS;
+    private final static int FIRST_LINEITEM_NODE = FIRST_ORDER_NODE + NUM_ORDERS;
     
+    private final static String DB_PATH = "neo4j";
+
     
     /* Partsupp PKs */
-    ArrayList<ArrayList<Integer>> partsuppPK = new ArrayList<ArrayList<Integer>>(NUM_PARTSUPPS);
+    HashSet<ArrayList<Integer>> partsuppPK = new HashSet<ArrayList<Integer>>(NUM_PARTSUPPS);
     /* Lineitem PKs */
     HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
     
@@ -98,21 +104,21 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     protected void firstInsertOperation() {
         Transaction tx = graphDB.beginTx();
         try {
-            insertRegions(NUM_REGIONS, 1);                              // 5 Regions
+            insertRegions(NUM_REGIONS, 1);                                                                      // 5 Regions
             System.out.println(NUM_REGIONS + " inserts region acabats");
-            insertNations(NUM_NATIONS, 1, NUM_REGIONS);                 // 25 Nations
+            insertNations(NUM_NATIONS, 1, FIRST_REGION_NODE, NUM_REGIONS);                                      // 25 Nations
             System.out.println(NUM_NATIONS + " inserts nation acabats");
-            insertParts(NUM_PARTS, 1);                                  // 666 Parts
+            insertParts(NUM_PARTS, 1);                                                                          // 666 Parts
             System.out.println(NUM_PARTS + " inserts part acabats");
-            insertSuppliers(NUM_SUPPLIERS, 1, NUM_NATIONS);             // 33 Suppliers
+            insertSuppliers(NUM_SUPPLIERS, 1, FIRST_NATION_NODE, NUM_NATIONS);                                  // 33 Suppliers
             System.out.println(NUM_SUPPLIERS + " inserts supplier acabats");
-            insertCustomers(NUM_CUSTOMERS, 1, NUM_NATIONS);             // 500 Customers
+            insertCustomers(NUM_CUSTOMERS, 1, FIRST_NATION_NODE, NUM_NATIONS);                                  // 500 Customers
             System.out.println(NUM_CUSTOMERS + " inserts customer acabats");
-            insertPartsupps(NUM_PARTSUPPS, NUM_PARTS, NUM_SUPPLIERS);   // 2666 Partsupps
+            insertPartsupps(NUM_PARTSUPPS, FIRST_PART_NODE, NUM_PARTS, FIRST_SUPPLIER_NODE, NUM_SUPPLIERS);     // 2666 Partsupps
             System.out.println(NUM_PARTSUPPS + " inserts partsupp acabats");
-            insertOrders(NUM_ORDERS, 1, NUM_CUSTOMERS);                 // 5000 Orders
+            insertOrders(NUM_ORDERS, 1, FIRST_CUSTOMER_NODE, NUM_CUSTOMERS);                                    // 5000 Orders
             System.out.println(NUM_ORDERS + " inserts order acabats");
-            insertLineitems(NUM_LINEITEMS, NUM_ORDERS, NUM_PARTSUPPS);  // 20000 Lineitems
+            insertLineitems(NUM_LINEITEMS, FIRST_ORDER_NODE, NUM_ORDERS, FIRST_PARTSUPP_NODE, NUM_PARTSUPPS);   // 20000 Lineitems
             System.out.println(NUM_LINEITEMS + " inserts lineitem acabats");
             
             tx.success();
@@ -159,16 +165,10 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }
     }
     
-    private void insertNations(int numInserts, int firstInsertPK, int numRegions) {
+    private void insertNations(int numInserts, int firstInsertPK, int firstRegionNode, int numRegions) {
         for (int i = 0; i < numInserts; i++) {
-            int regionKey = 1 + r.nextInt(numRegions);
-            ExecutionResult result = engine.execute("START region=node(*) WHERE region.R_RegionKey! = " + regionKey + " RETURN region");
-            Node region = null;
-            Iterator<Node> region_column = result.columnAs("region");
-            for (Node node : IteratorUtil.asIterable(region_column)) {
-                // Only one iteration
-                region = node;
-            }
+            int regionNode = firstRegionNode + r.nextInt(numRegions);
+            Node region = graphDB.getNodeById(regionNode);
             
             Node node = graphDB.createNode();
             node.setProperty("N_NationKey", firstInsertPK + i);
@@ -195,16 +195,10 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }   
     }
     
-    private void insertSuppliers(int numInserts, int firstInsertPK, int numNations) {
+    private void insertSuppliers(int numInserts, int firstInsertPK, int firstNationNode, int numNations) {
         for (int i = 0; i < numInserts; i++) {
-            int nationKey = 1 + r.nextInt(numNations);
-            ExecutionResult result = engine.execute("START nation=node(*) WHERE nation.N_NationKey! = " + nationKey + " RETURN nation");
-            Node nation = null;
-            Iterator<Node> nation_column = result.columnAs("nation");
-            for (Node node : IteratorUtil.asIterable(nation_column)) {
-                // Only one iteration
-                nation = node;
-            }
+            int nationNode = firstNationNode + r.nextInt(numNations);
+            Node nation = graphDB.getNodeById(nationNode);
             
             Node node = graphDB.createNode();
             node.setProperty("S_SuppKey", firstInsertPK + i);
@@ -218,16 +212,10 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }
     }
     
-    private void insertCustomers(int numInserts, int firstInsertPK, int numNations) {
+    private void insertCustomers(int numInserts, int firstInsertPK, int firstNationNode, int numNations) {
         for (int i = 0; i < numInserts; i++) {
-            int nationKey = 1 + r.nextInt(numNations);
-            ExecutionResult result = engine.execute("START nation=node(*) WHERE nation.N_NationKey! = " + nationKey + " RETURN nation");
-            Node nation = null;
-            Iterator<Node> nation_column = result.columnAs("nation");
-            for (Node node : IteratorUtil.asIterable(nation_column)) {
-                // Only one iteration
-                nation = node;
-            }
+            int nationNode = firstNationNode + r.nextInt(numNations);
+            Node nation = graphDB.getNodeById(nationNode);
             
             Node node = graphDB.createNode();
             node.setProperty("C_CustKey", firstInsertPK + i);
@@ -242,34 +230,21 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }
     }
     
-    private void insertPartsupps(int numInserts, int numParts, int numSuppliers) {
+    private void insertPartsupps(int numInserts, int firstPartNode, int numParts, int firstSupplierNode, int numSuppliers) {
         for (int i = 0; i < numInserts; i++) {
             ArrayList<Integer> pk;
-            int partKey, supplierKey;
+            int partNode, supplierNode;
             do {
                 pk = new ArrayList<Integer>(2);
-                partKey = 1 + r.nextInt(numParts);             
-                supplierKey = 1 + r.nextInt(numSuppliers);     
-                pk.add(partKey);
-                pk.add(supplierKey);
+                partNode = firstPartNode + r.nextInt(numParts);            
+                supplierNode = firstSupplierNode + r.nextInt(numSuppliers);    
+                pk.add(partNode);
+                pk.add(supplierNode);
             } while (partsuppPK.contains(pk));
             partsuppPK.add(pk);
             
-            ExecutionResult result = engine.execute("START part=node(*) WHERE part.P_PartKey! = " + partKey + " RETURN part");
-            Node part = null;
-            Iterator<Node> part_column = result.columnAs("part");
-            for (Node node : IteratorUtil.asIterable(part_column)) {
-                // Only one iteration
-                part = node;
-            }
-            
-            result = engine.execute("START supplier=node(*) WHERE supplier.S_SuppKey! = " + supplierKey + " RETURN supplier");
-            Node supplier = null;
-            Iterator<Node> supplier_column = result.columnAs("supplier");
-            for (Node node : IteratorUtil.asIterable(supplier_column)) {
-                // Only one iteration
-                supplier = node;
-            }
+            Node part = graphDB.getNodeById(partNode);
+            Node supplier = graphDB.getNodeById(supplierNode);
             
             Node node = graphDB.createNode();
             node.createRelationshipTo(part, RelTypes.IS_PART);
@@ -281,16 +256,10 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }
     }
     
-    private void insertOrders(int numInserts, int firstInsertPK, int numCustomers) {
+    private void insertOrders(int numInserts, int firstInsertPK, int firstCustomerNode, int numCustomers) {
         for (int i = 0; i < numInserts; i++) {
-            int customerKey = 1 + r.nextInt(numCustomers);
-            ExecutionResult result = engine.execute("START customer=node(*) WHERE customer.C_CustKey! = " + customerKey + " RETURN customer");
-            Node customer = null;
-            Iterator<Node> customer_column = result.columnAs("customer");
-            for (Node node : IteratorUtil.asIterable(customer_column)) {
-                // Only one iteration
-                customer = node;
-            }
+            int customerNode = firstCustomerNode + r.nextInt(numCustomers);
+            Node customer = graphDB.getNodeById(customerNode);
             
             Node node = graphDB.createNode();
             node.setProperty("O_OrderKey", firstInsertPK + i);
@@ -306,38 +275,23 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
         }
     }
     
-    private void insertLineitems(int numInserts, int numOrders, int numPartsupps) {
+    private void insertLineitems(int numInserts, int firstOrderNode, int numOrders, int firstPartsuppNode, int numPartsupps) {
         for (int i = 0; i < numInserts; i++) {
             ArrayList<Integer> pk;
-            int orderKey, linenumber;
+            int orderNode, linenumber;
             do {
                 pk = new ArrayList<Integer>(2);
-                orderKey = 1 + r.nextInt(numOrders);      
-                linenumber = r.nextInt(Integer.MAX_VALUE);
-                pk.add(orderKey);
+                orderNode = firstOrderNode + r.nextInt(numOrders);     
+                linenumber = getRandomInteger();
+                pk.add(orderNode);
                 pk.add(linenumber);
             } while (lineitemPK.contains(pk));
             lineitemPK.add(pk);
-            int index = r.nextInt(numPartsupps);
             
-            ExecutionResult result = engine.execute("START ord=node(*) WHERE ord.O_OrderKey! = " + orderKey + " RETURN ord");
-            Node order = null;
-            Iterator<Node> order_column = result.columnAs("ord");
-            for (Node node : IteratorUtil.asIterable(order_column)) {
-                // Only one iteration
-                order = node;
-            }
+            Node order = graphDB.getNodeById(orderNode);
             
-            result = engine.execute("START partsupp=node(*) " +
-                                    "MATCH (supplier)<-[:FROM_SUPPLIER]-(partsupp)-[:IS_PART]->(part) " +
-                                    "WHERE part.P_PartKey! = " + partsuppPK.get(index).get(0) + " " +
-                                    "AND supplier.S_SuppKey! = " + partsuppPK.get(index).get(1) + " RETURN partsupp");
-            Node partsupp = null;
-            Iterator<Node> partsupp_column = result.columnAs("partsupp");
-            for (Node node : IteratorUtil.asIterable(partsupp_column)) {
-                // Only one iteration
-                partsupp = node;
-            }
+            int partsuppNode = firstPartsuppNode + r.nextInt(numPartsupps);
+            Node partsupp = graphDB.getNodeById(partsuppNode);
             
             Node node = graphDB.createNode();
             node.createRelationshipTo(order, RelTypes.MEMBER_OF_ORDER);
