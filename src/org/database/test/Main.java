@@ -11,7 +11,7 @@ package org.database.test;
 public class Main {
     
     public static void main (String args[]) {
-        mongoDBExecution();
+        neo4jExecution();
     }
     
     public static void oracleExecution() {
@@ -107,4 +107,24 @@ public class Main {
         }
         System.out.println("Query4 time = " + time);
     }
+    
+    public static void neo4jExecution()
+    {
+        System.out.println("Neo4jExecution Start");
+        
+        IDBAdapter adapter = new DBAdapterNeo4j();
+        adapter.connect();
+        
+        System.out.println("Neo4j Database connection established");
+        
+        // INSERT FIRST BULK
+        float time;
+        time = adapter.insertFirstBulk();
+        System.out.println("First bulk insert time = " + time);
+        
+        adapter.disconnect();
+        
+        System.out.println("Neo4jExecution Start");
+    }
+    
 }
