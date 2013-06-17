@@ -118,20 +118,20 @@ public class Main {
         System.out.println("Neo4j Database connection established");
         
         // INSERT FIRST BULK
-        float time;
+        float time = Float.MAX_VALUE;
         //time = adapter.insertFirstBulk();
-        //System.out.println("First bulk insert time = " + time);
+        System.out.println("First bulk insert time = " + time);
         
-        time = adapter.executeQuery1();
+        //time = adapter.executeQuery1();
         System.out.println("Query1 time = " + time);
         
         time = adapter.executeQuery2();
         System.out.println("Query2 time = " + time);
         
-        time = adapter.executeQuery3();
+        //time = adapter.executeQuery3();
         System.out.println("Query3 time = " + time);
         
-        time = adapter.executeQuery4();
+        //time = adapter.executeQuery4();
         System.out.println("Query4 time = " + time);
         
         adapter.disconnect();
