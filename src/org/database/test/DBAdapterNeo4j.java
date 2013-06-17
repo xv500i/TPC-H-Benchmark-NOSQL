@@ -71,6 +71,18 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     /* Lineitem PKs */
     HashSet<ArrayList<Integer>> lineitemPK = new HashSet<ArrayList<Integer>>(NUM_LINEITEMS);
     
+    /* Needed query parameters */
+    String lineitemShipdate1;   // DATE
+    Integer partSize;
+    String partType;
+    String regionName1;
+    String customerMktsegment;
+    String orderOrderdate1;     // DATE
+    String lineitemShipdate2;   // DATE
+    String regionName2;
+    String orderOrderdate2;     // DATE
+    String orderOrderdate3;     // DATE
+    
     private GraphDatabaseService graphDB;
     private ExecutionEngine engine;
     private static Random r = new Random(System.currentTimeMillis());
@@ -140,7 +152,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
     public void doQuery1() {
         ExecutionResult result = engine.execute(
                 "START li=node(*) " +
-                "WHERE HAS(li.L_LineNumber) " +    
+                "WHERE li.L_ShipDate <= '???' " +    
                 "RETURN li.L_ReturnFlag, li.L_LineStatus, SUM(li.L_Quantity) AS Sum_Qty, SUM(li.L_ExtendedPrice) AS Sum_Base_Price, " +
                 "SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Sum_Disc_Price, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)*(1 + li.L_Tax)) AS Sum_Charge, " +
                 "AVG(li.L_Quantity) AS Avg_Qty, AVG(li.L_ExtendedPrice) AS Avg_Price, AVG(li.L_Discount) AS Avg_Disc, COUNT(*) AS Count_Order " +
@@ -168,7 +180,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
                 "WHERE p.P_Size = ??? AND p.P_Type =~ '*.???' AND r.R_Name = '???' AND ps.PS_SupplyCost = " + min_cost + " " +
                 "RETURN s.S_AcctBal, s.S_Name, n.N_Name, p.P_PartKey, p.P_Mfgr, s.S_Address, s.S_Phone, s.S_Comment " +
                 "ORDER BY s.S_AcctBal DESC, n.N_Name, s.S_Name, p.P_PartKey");
-        System.out.println(result.dumpToString());
+        //System.out.println(result.dumpToString());
     }
 
     @Override
@@ -179,7 +191,7 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
                 "WHERE c.C_MktSegment = '???' AND o.O_OrderDate < '???' AND li.L_ShipDate > '???' " +    
                 "RETURN li.L_OrderKey, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue, o.O_OrderDate, o.O_ShipPriority " +
                 "ORDER BY Revenue DESC, o.O_OrderDate");
-        System.out.println(result.dumpToString());
+        //System.out.println(result.dumpToString());
     }
 
     @Override
@@ -190,7 +202,97 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
                 "(p)<-[:IS_PART]-(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
                 "WHERE r.R_Name = '???' AND o.O_OrderDate >= '???' AND o.O_OrderDate < '???' " +
                 "RETURN n.N_Name, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue");
-        System.out.println(result.dumpToString());
+        //System.out.println(result.dumpToString());
+    }
+    
+    
+    /**
+     * Obtain randomly the needed parameters by the queries.
+     */
+    public void obtainQueryParameters() {
+        /* Query 1 */
+        // LINEITEM SHIPDATE
+        int lineItem = r.nextInt(NUM_LINEITEMS);
+        ExecutionResult result = engine.execute("START li=node(*) WHERE HAS(li.L_ShipDate) RETURN li.L_ShipDate AS ShipDate SKIP " + lineItem + " LIMIT 1");
+        Iterator<String> shipDate_it = result.columnAs("ShipDate");
+        for (String shipDate : IteratorUtil.asIterable(shipDate_it)) {
+            lineitemShipdate1 = shipDate;
+        }
+        
+        /* Query 2 */
+        // PART SIZE
+        int part = r.nextInt(NUM_PARTS);
+        result = engine.execute("START p=node(*) WHERE HAS(p.P_Size) RETURN p.P_Size AS Size SKIP " + part + " LIMIT 1");
+        Iterator<Integer> size_it = result.columnAs("Size");
+        for (Integer size : IteratorUtil.asIterable(size_it)) {
+            partSize = size;
+        }
+        
+        // PART TYPE
+        part = r.nextInt(NUM_PARTS);
+        result = engine.execute("START p=node(*) WHERE HAS(p.P_Type) RETURN p.P_Type AS Type SKIP " + part + " LIMIT 1");
+        Iterator<String> type_it = result.columnAs("Type");
+        for (String type : IteratorUtil.asIterable(type_it)) {
+            partType = type;
+        }
+        
+        // REGION NAME
+        int region = r.nextInt(NUM_REGIONS);
+        result = engine.execute("START r=node(*) WHERE HAS(r.R_Name) RETURN r.R_Name AS Name SKIP " + region + " LIMIT 1");
+        Iterator<String> name_it = result.columnAs("Name");
+        for (String name : IteratorUtil.asIterable(name_it)) {
+            regionName1 = name;
+        }
+        
+        /* Query 3*/
+        // ORDER ORDERDATE
+        int order = r.nextInt(NUM_ORDERS);
+        result = engine.execute("START o=node(*) WHERE HAS(o.O_OrderDate) RETURN o.O_OrderDate AS OrderDate SKIP " + order + " LIMIT 1");
+        Iterator<String> orderDate_it = result.columnAs("OrderDate");
+        for (String orderDate : IteratorUtil.asIterable(orderDate_it)) {
+            orderOrderdate1 = orderDate;
+        }
+        
+        // LINEITEM SHIPDATE
+        lineItem = r.nextInt(NUM_LINEITEMS);
+        result = engine.execute("START li=node(*) WHERE HAS(li.L_ShipDate) RETURN li.L_ShipDate AS ShipDate SKIP " + lineItem + " LIMIT 1");
+        shipDate_it = result.columnAs("ShipDate");
+        for (String shipDate : IteratorUtil.asIterable(shipDate_it)) {
+            lineitemShipdate2 = shipDate;
+        }
+        
+        // CUSTOMER MKTSEGMENT
+        int customer = r.nextInt(NUM_CUSTOMERS);
+        result = engine.execute("START c=node(*) WHERE HAS(c.C_MktSegment) RETURN c.C_MktSegment AS MktSegment SKIP " + customer + " LIMIT 1");
+        Iterator<String> mktsegment_it = result.columnAs("MktSegment");
+        for (String mktSegment : IteratorUtil.asIterable(mktsegment_it)) {
+            customerMktsegment = mktSegment;
+        }    
+        
+        /* Query 4 */
+        // REGION NAME
+        region = r.nextInt(NUM_REGIONS);
+        result = engine.execute("START r=node(*) WHERE HAS(r.R_Name) RETURN r.R_Name AS Name SKIP " + region + " LIMIT 1");
+        name_it = result.columnAs("Name");
+        for (String name : IteratorUtil.asIterable(name_it)) {
+            regionName2 = name;
+        }
+        
+        // ORDER ORDERDATE
+        order = r.nextInt(NUM_ORDERS);
+        result = engine.execute("START o=node(*) WHERE HAS(o.O_OrderDate) RETURN o.O_OrderDate AS OrderDate SKIP " + order + " LIMIT 2");
+        orderDate_it = result.columnAs("OrderDate");
+        int i = 0;
+        for (String orderDate : IteratorUtil.asIterable(orderDate_it)) {
+            if (i == 0) orderOrderdate2 = orderDate;
+            else orderOrderdate3 = orderDate;
+            i++;
+        }
+        if (orderOrderdate2.compareTo(orderOrderdate3) > 0) {
+                String auxDate = orderOrderdate2;
+                orderOrderdate2 = orderOrderdate3;
+                orderOrderdate3 = auxDate;
+        }
     }
     
     
