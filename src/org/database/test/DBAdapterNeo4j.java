@@ -4,6 +4,7 @@ package org.database.test;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
@@ -12,6 +13,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.helpers.collection.IteratorUtil;
 
 
 /**
@@ -136,25 +138,47 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     @Override
     public void doQuery1() {
-        ExecutionResult result = engine.execute("START li=node(*) " +
-                                                "WHERE HAS(li.L_LineNumber) " +    
-                                                "RETURN li.L_ReturnFlag, li.L_LineStatus, SUM(li.L_Quantity), SUM(li.L_ExtendedPrice), " +
-                                                "SUM(li.L_ExtendedPrice*(1 - li.L_Discount)), SUM(li.L_ExtendedPrice*(1 - li.L_Discount)*(1 + li.L_Tax)), " +
-                                                "AVG(li.L_Quantity), AVG(li.L_ExtendedPrice), AVG(li.L_Discount), COUNT(*)");
+        ExecutionResult result = engine.execute(
+                "START li=node(*) " +
+                "WHERE HAS(li.L_LineNumber) " +    
+                "RETURN li.L_ReturnFlag, li.L_LineStatus, SUM(li.L_Quantity) AS Sum_Qty, SUM(li.L_ExtendedPrice) AS Sum_Base_Price, " +
+                "SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Sum_Disc_Price, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)*(1 + li.L_Tax)) AS Sum_Charge, " +
+                "AVG(li.L_Quantity) AS Avg_Qty, AVG(li.L_ExtendedPrice) AS Avg_Price, AVG(li.L_Discount) AS Avg_Disc, COUNT(*) AS Count_Order " +
+                "ORDER BY li.L_ReturnFlag, li.L_LineStatus");
         System.out.println(result.dumpToString());
     }
 
     @Override
     public void doQuery2() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        ExecutionResult subResult = engine.execute(
+                "START ps=node(*) " +
+                "MATCH (ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
+                "WHERE r.R_Name = '???' " +
+                "RETURN MIN(ps.PS_SupplyCost) AS Min_Cost");
+        
+        int min_cost = 0;
+        Iterator<Integer> min_cost_it = subResult.columnAs("Min_Cost");
+        for (Integer cost : IteratorUtil.asIterable(min_cost_it)) {
+            min_cost = cost;
+        }
+        
+        ExecutionResult result = engine.execute(
+                "START ps=node(*) " +
+                "MATCH (p)<-[:IS_PART]-(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
+                "WHERE p.P_Size = ??? AND p.P_Type =~ '*.???' AND r.R_Name = '???' AND ps.PS_SupplyCost = " + min_cost + " " +
+                "RETURN s.S_AcctBal, s.S_Name, n.N_Name, p.P_PartKey, p.P_Mfgr, s.S_Address, s.S_Phone, s.S_Comment " +
+                "ORDER BY s.S_AcctBal DESC, n.N_Name, s.S_Name, p.P_PartKey");
+        System.out.println(result.dumpToString());
     }
 
     @Override
     public void doQuery3() {
-        ExecutionResult result = engine.execute("START o=node(*) " +
-                                                "MATCH (c)<-[:ORDERED_BY_CUSTOMER]-(o)<-[:MEMBER_OF_ORDER]-(li) " +
-                                                "WHERE c.C_MktSegment = ??? AND o.O_OrderDate < ??? AND li.L_ShipDate > ??? " +    
-                                                "RETURN li.L_OrderKey, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)), o.O_OrderDate, o.O_ShipPriority");
+        ExecutionResult result = engine.execute(
+                "START li=node(*) " +
+                "MATCH (c)<-[:ORDERED_BY_CUSTOMER]-(o)<-[:MEMBER_OF_ORDER]-(li) " +
+                "WHERE c.C_MktSegment = '???' AND o.O_OrderDate < '???' AND li.L_ShipDate > '???' " +    
+                "RETURN li.L_OrderKey, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue, o.O_OrderDate, o.O_ShipPriority " +
+                "ORDER BY Revenue DESC, o.O_OrderDate");
         System.out.println(result.dumpToString());
     }
 
