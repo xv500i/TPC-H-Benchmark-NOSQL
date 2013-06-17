@@ -184,7 +184,13 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     @Override
     public void doQuery4() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        ExecutionResult result = engine.execute(
+                "START ps=node(*) " +
+                "MATCH (c)<-[:ORDERED_BY_CUSTOMER]-(o)<-[:MEMBER_OF_ORDER]-(li)-[:HAS_PARTSUPP]->(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
+                "(p)<-[:IS_PART]-(ps)-[:FROM_SUPPLIER]->(s)-[:FROM_NATION]->(n)-[:MEMBER_OF_REGION]->(r) " +
+                "WHERE r.R_Name = '???' AND o.O_OrderDate >= '???' AND o.O_OrderDate < '???' " +
+                "RETURN n.N_Name, SUM(li.L_ExtendedPrice*(1 - li.L_Discount)) AS Revenue");
+        System.out.println(result.dumpToString());
     }
     
     
