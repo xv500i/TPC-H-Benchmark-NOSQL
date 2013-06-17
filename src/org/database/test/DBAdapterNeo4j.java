@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Random;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -135,7 +136,12 @@ public class DBAdapterNeo4j extends AbstractDBAdapter {
 
     @Override
     public void doQuery1() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        ExecutionResult result = engine.execute("START li=node(*) " +
+                                                "WHERE HAS(li.L_LineNumber) " +    
+                                                "RETURN li.L_ReturnFlag, li.L_LineStatus, SUM(li.L_Quantity), SUM(li.L_ExtendedPrice), " +
+                                                "SUM(li.L_ExtendedPrice*(1 - li.L_Discount)), SUM(li.L_ExtendedPrice*(1 - li.L_Discount)*(1 + li.L_Tax)), " +
+                                                "AVG(li.L_Quantity), AVG(li.L_ExtendedPrice), AVG(li.L_Discount), COUNT(*)");
+        System.out.println(result.dumpToString());
     }
 
     @Override

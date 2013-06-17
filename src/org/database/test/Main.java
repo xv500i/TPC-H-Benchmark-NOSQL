@@ -119,12 +119,15 @@ public class Main {
         
         // INSERT FIRST BULK
         float time;
-        time = adapter.insertFirstBulk();
-        System.out.println("First bulk insert time = " + time);
+        /*time = adapter.insertFirstBulk();
+        System.out.println("First bulk insert time = " + time);*/
+        
+        time = adapter.executeQuery1();
+        System.out.println("Query1 time = " + time);
         
         adapter.disconnect();
         
-        System.out.println("Neo4jExecution Start");
+        System.out.println("Neo4jExecution End");
     }
     
 }
